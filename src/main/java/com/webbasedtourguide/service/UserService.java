@@ -1,12 +1,23 @@
 package com.webbasedtourguide.service;
 
+import com.webbasedtourguide.abstracts.AuthEntityDependent;
 import com.webbasedtourguide.auth.JwtUtil;
+import com.webbasedtourguide.dto.BasicResponse;
+import com.webbasedtourguide.dto.LoginRequest;
+import com.webbasedtourguide.dto.RegisterRequest;
 import com.webbasedtourguide.dto.TokenResponse;
+import com.webbasedtourguide.entities.Admin;
 import com.webbasedtourguide.entities.AuthEntity;
+import com.webbasedtourguide.entities.TourGuide;
+import com.webbasedtourguide.entities.Tourist;
 import com.webbasedtourguide.enums.UserType;
-import com.webbasedtourguide.repositories.AuthEntityRepository;
+import com.webbasedtourguide.exceptions.RegisterException;
+import com.webbasedtourguide.repositories.*;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,59 +32,84 @@ public class UserService {
     @Autowired
     private AuthEntityRepository authEntityRepository;
 
-    //@Autowired
-    //private User1Repository user1Repository;
+    @Autowired
+    private TouristRepository touristRepository;
 
-    //@Autowired
-    //private User2Repository user2Repository;
+    @Autowired
+    private TourGuideRepository tourGuideRepository;
+
+    @Autowired
+    private AdminRepository adminRepository;
 
     @Autowired
     private JwtUtil jwtUtil;
 
     @Transactional
-    public Object addUser(String username, String email, String rawPassword, UserType userType) {
-
-        // Reject invalid type or admin type(Not implemented)
-        if (userType != UserType.USER1 && userType != UserType.USER2) throw new RuntimeException("Unauthorized");
+    public BasicResponse addUser(RegisterRequest request) throws RegisterException {
 
         // Reject if email exists
-        if (authEntityRepository.findByEmail(email).isPresent())
-            throw new RuntimeException("Account with email already exists");
+        if (authEntityRepository.findByEmail(request.getEmail()).isPresent())
+            throw new RegisterException("Account with email already exists");
 
         // Save auth info
         AuthEntity auth = new AuthEntity();
-        auth.setUsername(username);
-        auth.setEmail(email);
-        auth.setPassword(passwordEncoder.encode(rawPassword));
-        auth.setUserType(userType);
+        auth.setUsername(request.getUsername());
+        auth.setEmail(request.getEmail());
+        auth.setPassword(passwordEncoder.encode(request.getPassword()));
+        auth.setUserType(request.getUserType());
 
         // Construct and save the appropriate user type to correct repository
-        if (userType == UserType.USER1) {
+        if (request.getUserType() == UserType.TOURIST) {
 
-            // User1 user1 = new User1();
-            // user1.setAuthEntity(auth);
-            // auth.setUser1(user1);
+            Tourist tourist = new Tourist();
+            tourist.setAuthEntity(auth);
+            auth.setTourist(tourist);
             authEntityRepository.save(auth);
-            // user1Repository.save(user1);
-            // return whatever is needed
+            touristRepository.save(tourist);
         }
 
-        throw new RuntimeException("Register error");
+        else if (request.getUserType() == UserType.TOURGUIDE) {
+
+            TourGuide guide = new TourGuide();
+
+            guide.setAuthEntity(auth);
+            auth.setTourGuide(guide);
+            authEntityRepository.save(auth);
+            tourGuideRepository.save(guide);
+        }
+
+        else if (request.getUserType() == UserType.TOURMANAGER || request.getUserType() == UserType.AGENCYSTAFF) {
+
+            Admin admin = new Admin();
+
+            admin.setAuthEntity(auth);
+            auth.setAdmin(admin);
+            authEntityRepository.save(auth);
+            adminRepository.save(admin);
+        }
+        else throw new RegisterException("Register error");
+
+        BasicResponse response = new BasicResponse();
+        response.setSuccess(true);
+        return response;
     }
 
     @Transactional
-    public TokenResponse login(String email, String rawPassword) {
+    public TokenResponse login(LoginRequest request) {
         TokenResponse token = new TokenResponse();
 
         //Verify user is in DB
-        Optional<AuthEntity> opAuth = authEntityRepository.findByEmail(email);
+        Optional<AuthEntity> opAuth = authEntityRepository.findByEmail(request.getEmail());
         if (opAuth.isEmpty() ||
-                !passwordEncoder.matches(rawPassword, opAuth.get().getPassword())) {
+                !passwordEncoder.matches(request.getPassword(), opAuth.get().getPassword())) {
 
             token.setSuccess(false);
             token.setError("Invalid Username or Password");
         }
         else {
+
+            token.setSuccess(true);
+            token.setUsername(opAuth.get().getUsername());
             token.setToken(jwtUtil.generateToken(opAuth.get().getEmail()));
             token.setRole(opAuth.get().getUserType().name());
         }
@@ -83,19 +119,48 @@ public class UserService {
 
     // TODO: Implement logout with a blacklist cache since JWT is stateless
 
-//    @PreAuthorize("hasRole('ROLE_PASSENGER')")
+    @Transactional
+    public Tourist getCurrentTourist() throws EntityNotFoundException {
+        return touristRepository.findByAuthEntity_Email(((AuthEntity) SecurityContextHolder.getContext().
+                        getAuthentication().getPrincipal()).getEmail())
+                .orElseThrow(() -> new EntityNotFoundException("No such tourist"));
+    }
+
+    @PreAuthorize("hasRole('ROLE_TOURGUIDE')")
+    @Transactional
+    public TourGuide getCurrentGuide() throws EntityNotFoundException {
+        return tourGuideRepository.findByAuthEntity_Email(((AuthEntity) SecurityContextHolder.getContext().
+                        getAuthentication().getPrincipal()).getEmail())
+                .orElseThrow(() -> new EntityNotFoundException("No such tour guide"));
+    }
+
+//    @PreAuthorize("hasAnyRole('ROLE_PASSENGER', 'ROLE_DRIVER')")
 //    @Transactional
-//    public User1 getCurrentUser1() {
-//        return user1Repository.findByEmail(((AuthEntity) SecurityContextHolder.getContext().
-//                getAuthentication().getPrincipal()).getEmail())
-//                .orElseThrow(() -> new RuntimeException("No such user1"));
+//    public Integer[] getCurrentUserIds() throws EntityNotFoundException {
+//
+//        Optional<Driver> opDriver = driverRepository.findByAuthEntity_Email(((AuthEntity) SecurityContextHolder.getContext().
+//                getAuthentication().getPrincipal()).getEmail());
+//        Optional<Passenger> opPassenger = passengerRepository.findByAuthEntity_Email(((AuthEntity) SecurityContextHolder.getContext().
+//                getAuthentication().getPrincipal()).getEmail());
+//
+//        return new Integer[]{
+//                opPassenger.map(User::getId).orElse(null),
+//                opDriver.map(User::getId).orElse(null)
+//        };
 //    }
 
-//    @PreAuthorize("hasRole('ROLE_DRIVER')")
+//    @PreAuthorize("hasAnyRole('ROLE_PASSENGER', 'ROLE_DRIVER')")
 //    @Transactional
-//    public User2 getCurrentUser2() {
-//        return user2Repository.findByEmail(((AuthEntity) SecurityContextHolder.getContext().
-//                getAuthentication().getPrincipal()).getEmail())
-//                .orElseThrow(() -> new RuntimeException("No such user2"));
+//    public AuthEntityDependent[] getCurrentUser() throws EntityNotFoundException {
+//
+//        Optional<Driver> opDriver = driverRepository.findByAuthEntity_Email(((AuthEntity) SecurityContextHolder.getContext().
+//                getAuthentication().getPrincipal()).getEmail());
+//        Optional<Passenger> opPassenger = passengerRepository.findByAuthEntity_Email(((AuthEntity) SecurityContextHolder.getContext().
+//                getAuthentication().getPrincipal()).getEmail());
+//
+//        return new User[]{
+//                opPassenger.orElse(null),
+//                opDriver.orElse(null)
+//        };
 //    }
 }
