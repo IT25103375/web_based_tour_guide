@@ -12,8 +12,5 @@ public class TourPackage {
     @GeneratedValue
     private Integer id;
 
-    @Column(nullable = false, unique = true)
-    private String name;
-
     private String displayName;
 }

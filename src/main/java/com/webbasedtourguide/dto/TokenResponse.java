@@ -1,11 +1,18 @@
 package com.webbasedtourguide.dto;
 
-public class TokenResponse {
+public class TokenResponse extends BasicResponse{
 
+    private String username;
     private String token;
     private String role;
-    private boolean success = false;
-    private String error;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
     public String getRole() {
         return role;
@@ -21,21 +28,5 @@ public class TokenResponse {
 
     public void setToken(String token) {
         this.token = token;
-    }
-
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
-    }
-
-    public String getError() {
-        return error;
-    }
-
-    public void setError(String error) {
-        this.error = error;
     }
 }

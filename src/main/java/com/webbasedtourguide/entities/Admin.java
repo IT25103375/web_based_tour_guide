@@ -1,18 +1,16 @@
 package com.webbasedtourguide.entities;
 
 import com.webbasedtourguide.abstracts.AuthEntityDependent;
-import com.webbasedtourguide.enums.Schedule;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 
 @Entity
-public class TourGuide extends AuthEntityDependent {
+public class Admin extends AuthEntityDependent {
 
     @Id
     @GeneratedValue
     private Integer id;
-
-    @Column(nullable = false)
-    private Schedule schedule;
 
     public Integer getId() {
         return id;

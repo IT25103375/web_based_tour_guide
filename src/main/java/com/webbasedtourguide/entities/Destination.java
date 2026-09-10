@@ -11,9 +11,6 @@ public class Destination {
     @Id
     @GeneratedValue
     private Integer id;
-
-    @Column(nullable = false, unique = true)
-    private String name;
     
     private String displayName;
     private String location;

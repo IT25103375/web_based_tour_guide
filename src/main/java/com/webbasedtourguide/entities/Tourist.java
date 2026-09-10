@@ -1,17 +1,14 @@
 package com.webbasedtourguide.entities;
 
+import com.webbasedtourguide.abstracts.AuthEntityDependent;
 import jakarta.persistence.*;
 
 @Entity
-public class Tourist {
+public class Tourist extends AuthEntityDependent {
 
     @Id
     @GeneratedValue
     private Integer id;
-
-    @OneToOne(optional = false)
-    @JoinColumn(nullable = false, unique = true)
-    private AuthEntity authEntity;
 
     public Integer getId() {
         return id;
@@ -19,13 +16,5 @@ public class Tourist {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public AuthEntity getAuthEntity() {
-        return authEntity;
-    }
-
-    public void setAuthEntity(AuthEntity authEntity) {
-        this.authEntity = authEntity;
     }
 }

@@ -3,6 +3,7 @@ package com.webbasedtourguide.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.webbasedtourguide.enums.UserType;
 import jakarta.persistence.*;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,8 +34,12 @@ public class AuthEntity implements UserDetails {
     private String firstName;
     private String lastName;
 
-    @Override
-    public boolean isAccountNonExpired() { return true; }
+    @OneToOne
+    private Tourist tourist;
+    @OneToOne
+    private TourGuide tourGuide;
+    @OneToOne
+    private Admin admin;
 
     public String getEmail() {
         return email;
@@ -54,7 +59,7 @@ public class AuthEntity implements UserDetails {
     }
 
     @Override
-    public String getUsername() {
+    public @NonNull String getUsername() {
         return username;
     }
 
@@ -86,5 +91,29 @@ public class AuthEntity implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + getUserType().name()));
+    }
+
+    public Tourist getTourist() {
+        return tourist;
+    }
+
+    public void setTourist(Tourist tourist) {
+        this.tourist = tourist;
+    }
+
+    public TourGuide getTourGuide() {
+        return tourGuide;
+    }
+
+    public void setTourGuide(TourGuide tourGuide) {
+        this.tourGuide = tourGuide;
+    }
+
+    public Admin getAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(Admin admin) {
+        this.admin = admin;
     }
 }
