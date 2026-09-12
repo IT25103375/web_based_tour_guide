@@ -1,8 +1,8 @@
 package com.webbasedtourguide.enums;
 
-public enum DiscountType {
+public enum DiscountPriceType {
     FIXED,
     PERCENTAGE,
-    COMBINED,
     INVALID
 }
+
