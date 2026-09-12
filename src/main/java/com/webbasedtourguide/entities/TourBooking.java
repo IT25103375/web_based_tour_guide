@@ -1,19 +1,28 @@
 package com.webbasedtourguide.entities;
 
 import com.webbasedtourguide.enums.BookingStatus;
-import jakarta.persistence.Column;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
+@Entity
 public class TourBooking {
 
-    @Column(nullable = false)
+    @Id
+    @GeneratedValue
+    private Integer id;
+
+    @ManyToOne
+    @JoinColumn(nullable = false)
     private TourPackage tourPackage;
 
-    @Column(nullable = false)
+    @ManyToOne
+    @JoinColumn(nullable = false)
     private TourGuide guide;
 
+    @ManyToOne
+    @JoinColumn(nullable = false)
     private Discount discount;
 
     @Column(nullable = false)
@@ -38,6 +47,14 @@ public class TourBooking {
 
     public void setBookedDate(Instant bookedDate) {
         this.bookedDate = bookedDate;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public TourPackage getTourPackage() {

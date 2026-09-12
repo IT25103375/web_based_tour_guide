@@ -1,12 +1,17 @@
 package com.webbasedtourguide.service;
 
+import com.webbasedtourguide.dto.BasicResponse;
 import com.webbasedtourguide.dto.BookingDetailsDTO;
 import com.webbasedtourguide.entities.TourBooking;
+import com.webbasedtourguide.entities.TourGuide;
 import com.webbasedtourguide.enums.BookingStatus;
 import com.webbasedtourguide.exceptions.BookingTimeException;
+import com.webbasedtourguide.exceptions.GuideException;
+import com.webbasedtourguide.exceptions.TourException;
 import com.webbasedtourguide.repositories.BookingRepository;
 import com.webbasedtourguide.repositories.TourPackageRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -27,15 +32,30 @@ class BookingService {
         this.discountService = discountService;
     }
 
-    public BookingDetailsDTO BookNewTour(BookingDetailsDTO request) {
+    @Transactional
+    public BasicResponse BookNewTour(BookingDetailsDTO request) throws TourException {
 
-        if (request.getBookedTime().isBefore(Instant.now())) throw new BookingTimeException("Invalid date");
+        // TODO: Change runtimeExceptions to Exceptions and send back error responses/ implement error handler
+        if (request.getBookedTime().isBefore(Instant.now())) throw new TourException("Invalid date");
 
         TourBooking booking = new TourBooking();
         booking.setTourPackage(packageRepository.findById(request.getPackageId()).
-                orElseThrow(() -> new EntityNotFoundException("Package not found")));
-        // TODO: Guide needs to be assigned by system; not sent by request
-        booking.setGuide(tourGuideService.getGuide(request.getGuideId()));
+                orElseThrow(() -> new TourException("Package not found")));
+
+        // Finding guide, return fail response if no guides found
+        try {
+            TourGuide guide = tourGuideService.findSuitableGuide(request.getBookedTime());
+            booking.setGuide(guide);
+        }
+        catch (GuideException e) {
+            throw new TourException(e.getMessage());
+//            BasicResponse response = new BasicResponse();
+//            response.setMessage("No guides available!");
+//            response.setSuccess(false);
+//
+//            return response;
+        }
+
         booking.setDiscount(discountService.getDiscount(request.getCouponCode(), request.getPackageId()));
         booking.setFinalPrice(discountService.applyDiscount(
                 booking.getTourPackage().getPrice(), booking.getDiscount()));
@@ -51,5 +71,15 @@ class BookingService {
         response.setBookedTime(booking.getBookedDate());
 
         return response;
+    }
+
+    @Transactional
+    public BasicResponse cancelTour(BookingDetailsDTO request) throws TourException {
+        if (bookingRepository.updateBooking(request.getBookingId(), BookingStatus.CANCELLED) == 1
+            && tourGuideService.cancelGuideBooking(request.getGuideId())) {
+            request.setSuccess(true);
+            request.setMessage("Success");
+        }
+        throw new TourException("Error cancelling tour");
     }
 }

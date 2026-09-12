@@ -3,7 +3,7 @@ package com.webbasedtourguide.dto;
 public class BasicResponse {
 
     private boolean success = false;
-    private String error;
+    private String message;
 
     public boolean isSuccess() {
         return success;
@@ -13,11 +13,13 @@ public class BasicResponse {
         this.success = success;
     }
 
-    public String getError() {
-        return error;
+    public String getMessage() {
+        return message;
     }
 
-    public void setError(String error) {
-        this.error = error;
+    public void setMessage(String message) {
+        this.message = message;
     }
+
+
 }

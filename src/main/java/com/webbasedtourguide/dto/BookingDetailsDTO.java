@@ -5,10 +5,12 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-public class BookingDetailsDTO {
+public class BookingDetailsDTO extends BasicResponse {
 
     @NotNull
     private Integer packageId;
+
+    private Integer bookingId;
 
     private Integer guideId;
 
@@ -20,6 +22,11 @@ public class BookingDetailsDTO {
     private String packageName;
     private String guideName;
     private BigDecimal finalPrice;
+
+    public BookingDetailsDTO() {
+        super();
+        super.setSuccess(true);
+    }
 
     public Integer getPackageId() {
         return packageId;
@@ -75,5 +82,13 @@ public class BookingDetailsDTO {
 
     public void setFinalPrice(BigDecimal finalPrice) {
         this.finalPrice = finalPrice;
+    }
+
+    public Integer getBookingId() {
+        return bookingId;
+    }
+
+    public void setBookingId(Integer bookingId) {
+        this.bookingId = bookingId;
     }
 }
