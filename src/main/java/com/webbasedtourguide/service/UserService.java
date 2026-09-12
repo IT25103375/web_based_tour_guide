@@ -1,6 +1,5 @@
 package com.webbasedtourguide.service;
 
-import com.webbasedtourguide.abstracts.AuthEntityDependent;
 import com.webbasedtourguide.auth.JwtUtil;
 import com.webbasedtourguide.dto.BasicResponse;
 import com.webbasedtourguide.dto.LoginRequest;
@@ -12,11 +11,10 @@ import com.webbasedtourguide.entities.TourGuide;
 import com.webbasedtourguide.entities.Tourist;
 import com.webbasedtourguide.enums.UserType;
 import com.webbasedtourguide.exceptions.RegisterException;
+import com.webbasedtourguide.exceptions.UserException;
 import com.webbasedtourguide.repositories.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,23 +24,23 @@ import java.util.Optional;
 @Service
 public class UserService {
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+    private final AuthEntityRepository authEntityRepository;
+    private final TouristRepository touristRepository;
+    private final TourGuideRepository tourGuideRepository;
+    private final AdminRepository adminRepository;
+    private final JwtUtil jwtUtil;
 
-    @Autowired
-    private AuthEntityRepository authEntityRepository;
-
-    @Autowired
-    private TouristRepository touristRepository;
-
-    @Autowired
-    private TourGuideRepository tourGuideRepository;
-
-    @Autowired
-    private AdminRepository adminRepository;
-
-    @Autowired
-    private JwtUtil jwtUtil;
+    public UserService(PasswordEncoder passwordEncoder, AuthEntityRepository authEntityRepository,
+                       TouristRepository touristRepository, TourGuideRepository tourGuideRepository,
+                       AdminRepository adminRepository, JwtUtil jwtUtil) {
+        this.passwordEncoder = passwordEncoder;
+        this.authEntityRepository = authEntityRepository;
+        this.touristRepository = touristRepository;
+        this.tourGuideRepository = tourGuideRepository;
+        this.adminRepository = adminRepository;
+        this.jwtUtil = jwtUtil;
+    }
 
     @Transactional
     public BasicResponse addUser(RegisterRequest request) throws RegisterException {
@@ -104,7 +102,7 @@ public class UserService {
                 !passwordEncoder.matches(request.getPassword(), opAuth.get().getPassword())) {
 
             token.setSuccess(false);
-            token.setError("Invalid Username or Password");
+            token.setMessage("Invalid Username or Password");
         }
         else {
 
@@ -120,18 +118,17 @@ public class UserService {
     // TODO: Implement logout with a blacklist cache since JWT is stateless
 
     @Transactional
-    public Tourist getCurrentTourist() throws EntityNotFoundException {
+    public Tourist getCurrentTourist() throws UserException {
         return touristRepository.findByAuthEntity_Email(((AuthEntity) SecurityContextHolder.getContext().
                         getAuthentication().getPrincipal()).getEmail())
-                .orElseThrow(() -> new EntityNotFoundException("No such tourist"));
+                .orElseThrow(() -> new UserException("No such tourist"));
     }
 
-    @PreAuthorize("hasRole('ROLE_TOURGUIDE')")
     @Transactional
-    public TourGuide getCurrentGuide() throws EntityNotFoundException {
+    public TourGuide getCurrentGuide() throws UserException {
         return tourGuideRepository.findByAuthEntity_Email(((AuthEntity) SecurityContextHolder.getContext().
                         getAuthentication().getPrincipal()).getEmail())
-                .orElseThrow(() -> new EntityNotFoundException("No such tour guide"));
+                .orElseThrow(() -> new UserException("No such tour guide"));
     }
 
 //    @PreAuthorize("hasAnyRole('ROLE_PASSENGER', 'ROLE_DRIVER')")

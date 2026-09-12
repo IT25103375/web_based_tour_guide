@@ -1,6 +1,6 @@
 package com.webbasedtourguide.exceptions;
 
-public class RegisterException extends Exception {
+public class RegisterException extends RuntimeException {
     public RegisterException(String message) {
         super(message);
     }
