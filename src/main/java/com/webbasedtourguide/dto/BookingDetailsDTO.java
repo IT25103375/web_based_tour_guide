@@ -8,10 +8,10 @@ import java.time.Instant;
 public class BookingDetailsDTO extends BasicResponse {
 
     @NotNull
+    private Integer bookerId;
+    @NotNull
     private Integer packageId;
-
     private Integer bookingId;
-
     private Integer guideId;
 
     @NotNull
@@ -90,5 +90,13 @@ public class BookingDetailsDTO extends BasicResponse {
 
     public void setBookingId(Integer bookingId) {
         this.bookingId = bookingId;
+    }
+
+    public Integer getBookerId() {
+        return bookerId;
+    }
+
+    public void setBookerId(Integer bookerId) {
+        this.bookerId = bookerId;
     }
 }

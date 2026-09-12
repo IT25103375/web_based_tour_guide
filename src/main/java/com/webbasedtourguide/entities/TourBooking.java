@@ -19,6 +19,14 @@ public class TourBooking {
 
     @ManyToOne
     @JoinColumn(nullable = false)
+    private Tourist booker;
+
+    @ManyToOne
+    @JoinColumn
+    private Event event;
+
+    @ManyToOne
+    @JoinColumn(nullable = false)
     private TourGuide guide;
 
     @ManyToOne
@@ -87,5 +95,21 @@ public class TourBooking {
 
     public void setFinalPrice(BigDecimal finalPrice) {
         this.finalPrice = finalPrice;
+    }
+
+    public Event getEvent() {
+        return event;
+    }
+
+    public void setEvent(Event event) {
+        this.event = event;
+    }
+
+    public Tourist getBooker() {
+        return booker;
+    }
+
+    public void setBooker(Tourist booker) {
+        this.booker = booker;
     }
 }
