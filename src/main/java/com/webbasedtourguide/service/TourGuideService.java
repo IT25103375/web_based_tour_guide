@@ -1,6 +1,7 @@
 package com.webbasedtourguide.service;
 
 import com.webbasedtourguide.entities.TourGuide;
+import com.webbasedtourguide.enums.GuideStatus;
 import com.webbasedtourguide.exceptions.GuideException;
 import com.webbasedtourguide.repositories.TourGuideRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -34,5 +35,9 @@ class TourGuideService {
         List<TourGuide> guides = guideRepository.findAvailableGuides(bitmask);
         if (!guides.isEmpty()) return guides.getFirst();
         else throw new GuideException("No guides available!");
+    }
+
+    public boolean cancelGuideBooking(Integer id) {
+        return guideRepository.updateGuideStatus(id, GuideStatus.AVAILABLE) == 1;
     }
 }
