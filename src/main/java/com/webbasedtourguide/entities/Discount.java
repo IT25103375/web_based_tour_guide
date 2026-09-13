@@ -99,15 +99,15 @@ public class Discount {
         return applicablePackages;
     }
 
-    public void remove(Object o) {
+    public void removeTourPackages(Object o) {
         this.applicablePackages.remove(o);
     }
 
-    public void add(TourPackage tourPackage) {
+    public void addTourPackage(TourPackage tourPackage) {
         this.applicablePackages.add(tourPackage);
     }
 
-    public void addAll(@NonNull Collection<? extends TourPackage> c) {
+    public void addAllTourPackages(@NonNull Collection<? extends TourPackage> c) {
         this.applicablePackages.addAll(c);
     }
 

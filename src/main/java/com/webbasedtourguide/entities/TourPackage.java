@@ -1,11 +1,9 @@
 package com.webbasedtourguide.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 public class TourPackage {
@@ -15,8 +13,10 @@ public class TourPackage {
     private Integer id;
 
     private String displayName;
-
     private BigDecimal price;
+
+    @ManyToMany
+    private List<Destination> offeredDestinations;
 
     public Integer getId() {
         return id;
@@ -40,5 +40,21 @@ public class TourPackage {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public List<Destination> getOfferedDestinations() {
+        return offeredDestinations;
+    }
+
+    public void setOfferedDestinations(List<Destination> offeredDestinations) {
+        this.offeredDestinations = offeredDestinations;
+    }
+
+    public void addDestination(Destination destination) {
+        this.offeredDestinations.add(destination);
+    }
+
+    public void removeDestination(Destination o) {
+        this.offeredDestinations.remove(o);
     }
 }

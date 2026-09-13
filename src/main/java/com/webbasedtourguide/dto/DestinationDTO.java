@@ -1,21 +1,13 @@
-package com.webbasedtourguide.entities;
-
-import jakarta.persistence.*;
+package com.webbasedtourguide.dto;
 
 import java.util.List;
 
-@Entity
-public class Destination {
+public class DestinationDTO {
 
-    @Id
-    @GeneratedValue
     private Integer id;
-    
     private String displayName;
     private String location;
-
-    @ManyToMany(mappedBy = "offeredDestinations")
-    List<TourPackage> offeredPackages;
+    private List<Integer> offeredPackageIds;
 
     public Integer getId() {
         return id;
@@ -41,11 +33,11 @@ public class Destination {
         this.location = location;
     }
 
-    public List<TourPackage> getOfferedPackages() {
-        return offeredPackages;
+    public List<Integer> getOfferedPackageIds() {
+        return offeredPackageIds;
     }
 
-    public void setOfferedPackages(List<TourPackage> offeredPackages) {
-        this.offeredPackages = offeredPackages;
+    public void setOfferedPackageIds(List<Integer> offeredPackageIds) {
+        this.offeredPackageIds = offeredPackageIds;
     }
 }
