@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-class DestinationService {
+public class DestinationService {
 
     private final DestinationRepository destinationRepository;
     private final TourPackageService tourPackageService;
@@ -53,6 +53,12 @@ class DestinationService {
 
     public Iterable<Destination> getDestinations(List<Integer> ids) {
         return destinationRepository.findAllById(ids);
+    }
+
+    public List<TourPackage> getPackagesByDestination(Integer destId) {
+        return destinationRepository.findById(destId)
+                .orElseThrow(() -> new DestinationException("No such destination"))
+                .getOfferedPackages();
     }
 
     public Optional<Destination> getDestination(Integer id) {

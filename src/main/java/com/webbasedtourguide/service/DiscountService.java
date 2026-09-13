@@ -14,7 +14,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Service
-class DiscountService {
+public class DiscountService {
 
     private final DiscountRepository discountRepository;
 

@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Service
-class TourPackageService {
+public class TourPackageService {
 
     private final TourPackageRepository tourPackageRepository;
 
@@ -44,5 +44,12 @@ class TourPackageService {
             p.removeDestination(destination);
             tourPackageRepository.save(p);
         }
+    }
+
+    public List<Destination> getDestinationsFromPackage(Integer pkgId) throws PackageException {
+        TourPackage tourPackage = tourPackageRepository.findById(pkgId)
+                .orElseThrow(() -> new PackageException("Cannot find package"));
+
+        return tourPackage.getOfferedDestinations();
     }
 }

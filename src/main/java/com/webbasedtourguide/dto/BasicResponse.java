@@ -17,6 +17,10 @@ public class BasicResponse {
         return new BasicResponse(true, "Successful");
     }
 
+    public static BasicResponse badRequest(String message) {
+        return new BasicResponse(false, message);
+    }
+
     public boolean isSuccess() {
         return success;
     }

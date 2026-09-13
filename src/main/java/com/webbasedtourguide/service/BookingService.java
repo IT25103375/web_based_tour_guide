@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 
 @Service
-class BookingService {
+public class BookingService {
 
     private final TourPackageRepository packageRepository;
     private final BookingRepository bookingRepository;

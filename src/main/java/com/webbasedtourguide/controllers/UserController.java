@@ -1,5 +1,4 @@
 package com.webbasedtourguide.controllers;
-import com.webbasedtourguide.auth.JwtUtil;
 import com.webbasedtourguide.dto.BasicResponse;
 import com.webbasedtourguide.dto.LoginRequest;
 import com.webbasedtourguide.dto.RegisterRequest;
@@ -7,24 +6,19 @@ import com.webbasedtourguide.dto.TokenResponse;
 import com.webbasedtourguide.exceptions.RegisterException;
 import com.webbasedtourguide.service.UserService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @RestController // Rest api
 @CrossOrigin
 @RequestMapping(path = "/api/user")
 public class UserController {
 
-    private final JwtUtil jwtUtil;
     private final UserService userService;
 
-    public UserController(JwtUtil jwtUtil, UserService userService) {
-        this.jwtUtil = jwtUtil;
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 

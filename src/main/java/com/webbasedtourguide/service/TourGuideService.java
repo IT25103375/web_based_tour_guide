@@ -14,7 +14,7 @@ import java.time.ZoneId;
 import java.util.List;
 
 @Service
-class TourGuideService {
+public class TourGuideService {
 
     private final TourGuideRepository guideRepository;
 

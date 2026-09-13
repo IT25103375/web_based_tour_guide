@@ -5,6 +5,8 @@ import com.webbasedtourguide.entities.TourPackage;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring", uses = com.webbasedtourguide.mappers.IdResolver.class)
 public interface TourPackageMapper {
 
@@ -13,4 +15,6 @@ public interface TourPackageMapper {
 
     @Mapping(target = "offeredDestinations", source = "offeredDestinationIds", qualifiedByName = "idsToDestinations")
     TourPackage toEntity(TourPackageDTO dto);
+
+    List<TourPackageDTO> toDtoList(List<TourPackage> tourPackages);
 }

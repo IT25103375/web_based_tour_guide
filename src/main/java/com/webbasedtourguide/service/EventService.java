@@ -16,7 +16,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 @Service
-class EventService {
+public class EventService {
 
     private final EventRepository eventRepository;
     private final UserService userService;
