@@ -17,10 +17,10 @@ public interface EventRepository extends CrudRepository<Event, Integer> {
     int discontinueEvent(Integer id, Instant now);
 
     @Query("SELECT e FROM Event e JOIN e.applicablePackages p WHERE e.id = :evtId AND p.id = :pkgId " +
-            "AND e.startDate >= :now AND e.endDate < :now")
+            "AND e.startDate > :now")
     Optional<Event> getValidEvent(Integer eventId, Integer pkgId, Instant now);
 
     @Query("SELECT e FROM Event e JOIN e.applicablePackages p WHERE p.id = :pkgId " +
-            "AND e.startDate >= :now AND e.endDate < :now")
+            "AND e.startDate > :now")
     List<Event> getValidEvents(Integer pkgId, Instant now);
 }

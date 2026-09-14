@@ -41,7 +41,7 @@ public class EventService {
     @Transactional
     public BasicResponse discontinueEvent(EventControlDTO request) throws EventException {
 
-        if (eventRepository.discontinueEvent(request.getBookingId(), Instant.now()) == 1) {
+        if (eventRepository.discontinueEvent(request.getEventId(), Instant.now()) == 1) {
             return BasicResponse.ok();
         }
         throw new EventException("Error discontinuing event");
