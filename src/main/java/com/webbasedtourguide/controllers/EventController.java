@@ -7,7 +7,6 @@ import com.webbasedtourguide.entities.Event;
 import com.webbasedtourguide.exceptions.EventException;
 import com.webbasedtourguide.exceptions.PackageException;
 import com.webbasedtourguide.mappers.EventMapper;
-import com.webbasedtourguide.repositories.EventRegistrationRepository;
 import com.webbasedtourguide.service.EventService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -19,12 +18,9 @@ import java.util.Optional;
 public class EventController {
 
     private final EventService eventService;
-    private final EventRegistrationRepository eventRegistrationRepository;
 
-    public EventController(EventService eventService,
-                            EventRegistrationRepository eventRegistrationRepository) {
+    public EventController(EventService eventService) {
         this.eventService = eventService;
-        this.eventRegistrationRepository = eventRegistrationRepository;
     }
 
     // Admin: create a new event
@@ -47,24 +43,24 @@ public class EventController {
         if (event.isEmpty()) {
             throw new EventException("Event not available for the selected package");
         }
-        // ASSUMPTION: TourPackage isn't fetched here yet — pass null for now.
-        // Once you confirm how TourPackageService/Repository looks up a package by id,
-        // fetch the real TourPackage and pass it in instead of null.
         return EventMapper.toDetailsDTO(event.get(), null);
     }
 
-    // NOT YET IMPLEMENTED: register endpoint.
-    // Blocked on two things I don't have yet:
-    //   1. EventRegistrationService (needs to be written once EventRegistration entity is confirmed)
-    //   2. How the logged-in tourist's id is read from the request (JwtAuthFilter / SecurityContext) —
-    //      need UserController.java to see the pattern used elsewhere in this project, so this
-    //      endpoint matches it instead of inventing a different auth approach.
-    //
-    // Once those are available, this endpoint will look roughly like:
-    //
-    // @PostMapping("/{eventId}/register")
-    // public BasicResponse register(@PathVariable Integer eventId, @PathVariable Integer bookingId,
-    //                                /* tourist identity param, matching your auth pattern */) throws EventException {
-    //     return eventRegistrationService.register(eventId, bookingId, touristId);
-    // }
+    // Tourist: register for an event using an existing booking.
+    // NOTE: touristId is taken as a request param here as a placeholder -- once
+    // the auth side of the project exposes the logged-in tourist's id (e.g. via
+    // SecurityContextHolder, same pattern as UserController.testLogin()), swap
+    // this param for that instead of trusting a value the client sends.
+    @PostMapping("/register")
+    public BasicResponse registerForEvent(@RequestParam Integer bookingId,
+                                          @RequestParam Integer eventId,
+                                          @RequestParam Integer touristId) throws EventException {
+        return eventService.registerForEvent(bookingId, eventId, touristId);
+    }
+
+    // Participation count for an event
+    @GetMapping("/{eventId}/participants")
+    public long getParticipantCount(@PathVariable Integer eventId) {
+        return eventService.getParticipantCount(eventId);
+    }
 }
