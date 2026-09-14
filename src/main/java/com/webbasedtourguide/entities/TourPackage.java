@@ -18,6 +18,12 @@ public class TourPackage {
     @ManyToMany
     private List<Destination> offeredDestinations;
 
+    @ManyToMany
+    private List<Event> offeredEvents;
+
+    @ManyToMany
+    private List<Discount> offeredDiscounts;
+
     public Integer getId() {
         return id;
     }

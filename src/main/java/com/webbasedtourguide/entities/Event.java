@@ -19,8 +19,7 @@ public class Event {
     @Column(nullable = false)
     private BigDecimal price;
 
-    @OneToMany
-    @JoinColumn(nullable = false)
+    @ManyToMany(mappedBy = "offeredEvents")
     private List<TourPackage> applicablePackages;
 
     @Column(nullable = false)

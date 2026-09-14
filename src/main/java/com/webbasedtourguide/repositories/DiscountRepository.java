@@ -20,6 +20,6 @@ public interface DiscountRepository extends CrudRepository<Discount, Integer> {
     Optional<TimedDiscount> getCouponCodeForPackage(String code, Integer pkgId);
 
     @Query("SELECT d FROM Discount d JOIN d.applicablePackages p " +
-            "WHERE p.id = :pkgId AND TYPE(d.applicablePackages) = TimedDiscount")
+            "WHERE p.id = :pkgId AND TYPE(d) = TimedDiscount")
     List<TimedDiscount> getAvailableTimedDiscounts(Integer pkgId);
 }

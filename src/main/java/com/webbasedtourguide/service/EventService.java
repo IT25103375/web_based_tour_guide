@@ -2,12 +2,9 @@ package com.webbasedtourguide.service;
 
 import com.webbasedtourguide.dto.BasicResponse;
 import com.webbasedtourguide.dto.EventControlDTO;
-import com.webbasedtourguide.dto.EventDetailsDTO;
 import com.webbasedtourguide.entities.Event;
-import com.webbasedtourguide.entities.TourBooking;
 import com.webbasedtourguide.exceptions.EventException;
 import com.webbasedtourguide.exceptions.PackageException;
-import com.webbasedtourguide.exceptions.UserException;
 import com.webbasedtourguide.repositories.EventRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -19,15 +16,11 @@ import java.util.Optional;
 public class EventService {
 
     private final EventRepository eventRepository;
-    private final UserService userService;
     private final TourPackageService tourPackageService;
-    private final BookingService bookingService;
 
-    EventService(EventRepository eventRepository, UserService userService, TourPackageService tourPackageService, BookingService bookingService) {
+    EventService(EventRepository eventRepository, TourPackageService tourPackageService) {
         this.eventRepository = eventRepository;
-        this.userService = userService;
         this.tourPackageService = tourPackageService;
-        this.bookingService = bookingService;
     }
 
     @Transactional

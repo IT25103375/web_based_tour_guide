@@ -7,7 +7,7 @@ import org.mapstruct.Mapping;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = com.webbasedtourguide.mappers.IdResolver.class)
+@Mapper(componentModel = "spring", uses = IdResolver.class)
 public interface TourPackageMapper {
 
     @Mapping(target = "offeredDestinationIds", source = "offeredDestinations", qualifiedByName = "destinationsToIds")

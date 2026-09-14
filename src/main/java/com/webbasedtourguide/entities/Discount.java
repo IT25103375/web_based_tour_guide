@@ -19,8 +19,7 @@ public class Discount {
     @GeneratedValue
     private Integer id;
 
-    @OneToMany
-    @JoinColumn(nullable = false)
+    @ManyToMany(mappedBy = "offeredDiscounts")
     private List<TourPackage> applicablePackages;
 
     private String couponCode;

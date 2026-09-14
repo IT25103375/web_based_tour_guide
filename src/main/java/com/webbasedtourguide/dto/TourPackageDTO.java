@@ -40,11 +40,11 @@ public class TourPackageDTO {
         this.price = price;
     }
 
-    public List<Integer> getOfferedDestinations() {
+    public List<Integer> getOfferedDestinationIds() {
         return offeredDestinationIds;
     }
 
-    public void setOfferedDestinations(List<Integer> offeredDestinations) {
-        this.offeredDestinationIds = offeredDestinations;
+    public void setOfferedDestinationIds(List<Integer> offeredDestinationIds) {
+        this.offeredDestinationIds = offeredDestinationIds;
     }
 }
