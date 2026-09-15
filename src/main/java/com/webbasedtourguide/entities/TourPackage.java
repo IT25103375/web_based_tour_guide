@@ -1,5 +1,7 @@
+
 package com.webbasedtourguide.entities;
 
+import java.util.ArrayList;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -22,7 +24,30 @@ public class TourPackage {
     private List<Event> offeredEvents;
 
     @ManyToMany
-    private List<Discount> offeredDiscounts;
+    @JoinTable(
+            name = "tour_package_discount",
+            joinColumns = @JoinColumn(name = "tour_package_id"),
+            inverseJoinColumns = @JoinColumn(name = "discount_id"))
+    private List<Discount> offeredDiscounts = new ArrayList<>();
+
+
+
+    public List<Discount> getOfferedDiscounts() {
+        return offeredDiscounts;
+    }
+
+    /** Keeps BOTH sides of the many-to-many in sync. */
+    public void addDiscount(Discount discount) {
+        if (!offeredDiscounts.contains(discount)) {
+            offeredDiscounts.add(discount);
+            discount.getApplicablePackages().add(this);
+        }
+    }
+
+    public void removeDiscount(Discount discount) {
+        offeredDiscounts.remove(discount);
+        discount.getApplicablePackages().remove(this);
+    }
 
     public Integer getId() {
         return id;

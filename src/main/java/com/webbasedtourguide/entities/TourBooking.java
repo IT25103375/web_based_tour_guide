@@ -30,7 +30,7 @@ public class TourBooking {
     private TourGuide guide;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "discount_id")
     private Discount discount;
 
     @Column(nullable = false)
