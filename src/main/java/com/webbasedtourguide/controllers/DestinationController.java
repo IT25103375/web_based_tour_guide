@@ -37,28 +37,27 @@ class DestinationController {
     public ResponseEntity<String> addDestination(@Valid @RequestBody DestinationDTO request) {
 
         // TODO: properly implement response system; decide between ResponseEntity and custom BasicResponse
-
         try {
-            destinationService.addDestination(request);
+           return ResponseEntity.ok().body(destinationService.addDestination(request).getMessage());
 
         } catch (PackageException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+            return ResponseEntity.badRequest().body(e.getMessage());}
+    }
 
-        return ResponseEntity.ok().build();
+    @PutMapping
+    @PreAuthorize("hasAnyRole('ROLE_AGENCYSTAFF', 'ROLE_TOURMANAGER')")
+    public ResponseEntity<String> editDestination(@Valid @RequestBody DestinationDTO request) {
+        return ResponseEntity.ok().body(destinationService.editDestination(request).getMessage());
     }
 
     @DeleteMapping
     @PreAuthorize("hasAnyRole('ROLE_AGENCYSTAFF', 'ROLE_TOURMANAGER')")
     public ResponseEntity<String> removeDestination(@Valid @RequestBody DestinationDTO request) {
-
         try {
-            destinationService.removeDestination(request);
+            return ResponseEntity.ok().body(destinationService.removeDestination(request).getMessage());
         } catch (PackageException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/destination")

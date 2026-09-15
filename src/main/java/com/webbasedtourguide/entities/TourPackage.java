@@ -1,8 +1,10 @@
 package com.webbasedtourguide.entities;
 
 import jakarta.persistence.*;
+import org.jspecify.annotations.NonNull;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -62,5 +64,9 @@ public class TourPackage {
 
     public void removeDestination(Destination o) {
         this.offeredDestinations.remove(o);
+    }
+
+    public void addAllDestinations(@NonNull Collection<? extends Destination> c) {
+        this.offeredDestinations.addAll(c);
     }
 }

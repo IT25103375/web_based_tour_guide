@@ -25,6 +25,7 @@ public class EventControlDTO extends BasicResponse {
 
     private String eventName;
     private BigDecimal price;
+    private Integer capacity;
 
     public EventControlDTO() {
         super();
@@ -93,5 +94,13 @@ public class EventControlDTO extends BasicResponse {
 
     public void setEndDate(Instant endDate) {
         this.endDate = endDate;
+    }
+
+    public Integer getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(Integer capacity) {
+        this.capacity = capacity;
     }
 }

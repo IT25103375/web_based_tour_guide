@@ -40,6 +40,19 @@ public class DestinationService {
     }
 
     @Transactional
+    public BasicResponse editDestination(DestinationDTO request) {
+
+        Optional<Destination> opDestination = destinationRepository.findById(request.getId());
+        if (opDestination.isEmpty()) return BasicResponse.badRequest("No such destination");
+
+        Destination destination = opDestination.get();
+        if (request.getDisplayName() != null && !request.getDisplayName().isBlank()) destination.setDisplayName(request.getDisplayName());
+        if (request.getLocation() != null && !request.getLocation().isBlank()) destination.setLocation(request.getLocation());
+
+        return BasicResponse.ok();
+    }
+
+    @Transactional
     public BasicResponse removeDestination(DestinationDTO request) throws PackageException {
 
         Destination destination = destinationRepository.findById(request.getId())
@@ -47,12 +60,17 @@ public class DestinationService {
 
         tourPackageService.removeDestinationFromPackages(destination.getOfferedPackages().stream()
                 .map(TourPackage::getId).collect(Collectors.toList()), destination);
+        destinationRepository.deleteById(destination.getId());
 
         return BasicResponse.ok();
     }
 
     public List<Destination> getDestinations() {
         return (List<Destination>) destinationRepository.findAll();
+    }
+
+    public List<Destination> getDestinationsById(List<Integer> ids) {
+        return (List<Destination>) destinationRepository.findAllById(ids);
     }
 
     public List<TourPackage> getPackagesByDestination(Integer destId) {

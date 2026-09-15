@@ -18,6 +18,7 @@ public interface BookingMapper {
     @Mapping(target = "guideId", source = "guide.id")
     @Mapping(target = "packageName", source = "tourPackage.displayName")
     @Mapping(target = "guideName", source = "guide.name")
+    @Mapping(target = "eventId", source = "event.id")
     BookingDetailsDTO toDto(TourBooking tourBooking);
 
     List<BookingDetailsDTO> toDtoList(List<TourBooking> tourBookings);

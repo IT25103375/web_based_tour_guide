@@ -1,5 +1,6 @@
 package com.webbasedtourguide.dto;
 
+import com.webbasedtourguide.enums.BookingStatus;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
@@ -9,12 +10,14 @@ public class BookingDetailsDTO extends BasicResponse {
 
     private Integer bookingId;
     private Integer bookerId;
-    @NotNull
+
     private Integer packageId;
+    private Integer eventId;
     private Integer guideId;
 
     private Instant bookedDate;
     private String couponCode;
+    private BookingStatus status;
 
     // For display purposes
     private String packageName;
@@ -96,5 +99,21 @@ public class BookingDetailsDTO extends BasicResponse {
 
     public void setBookerId(Integer bookerId) {
         this.bookerId = bookerId;
+    }
+
+    public Integer getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(Integer eventId) {
+        this.eventId = eventId;
+    }
+
+    public BookingStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(BookingStatus status) {
+        this.status = status;
     }
 }

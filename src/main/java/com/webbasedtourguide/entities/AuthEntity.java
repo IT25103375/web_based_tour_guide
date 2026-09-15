@@ -34,6 +34,14 @@ public class AuthEntity implements UserDetails {
     private String firstName;
     private String lastName;
 
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
     @OneToOne
     private Tourist tourist;
     @OneToOne

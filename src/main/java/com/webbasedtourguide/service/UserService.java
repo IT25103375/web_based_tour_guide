@@ -5,6 +5,7 @@ import com.webbasedtourguide.dto.BasicResponse;
 import com.webbasedtourguide.dto.LoginRequest;
 import com.webbasedtourguide.dto.RegisterRequest;
 import com.webbasedtourguide.dto.TokenResponse;
+import com.webbasedtourguide.dto.UserAdminDTO;
 import com.webbasedtourguide.entities.Admin;
 import com.webbasedtourguide.entities.AuthEntity;
 import com.webbasedtourguide.entities.TourGuide;
@@ -19,7 +20,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -116,6 +119,66 @@ public class UserService {
     }
 
     // TODO: Implement logout with a blacklist cache since JWT is stateless
+
+    // --- Admin user management (used by the admin panel's Users tab) ---
+
+    public List<UserAdminDTO> getAllUsers() {
+        List<AuthEntity> all = (List<AuthEntity>) authEntityRepository.findAll();
+        return all.stream()
+                .map(a -> new UserAdminDTO(a.getId(), a.getUsername(), a.getEmail(), a.getUserType()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public BasicResponse updateUserRole(Integer id, UserType newType) throws UserException {
+        AuthEntity auth = authEntityRepository.findById(id)
+                .orElseThrow(() -> new UserException("No such user"));
+
+        if (auth.getUserType() == newType) return BasicResponse.ok();
+
+        // Detach and remove the old role-specific record
+        if (auth.getTourist() != null) { touristRepository.deleteById(auth.getTourist().getId()); auth.setTourist(null); }
+        if (auth.getTourGuide() != null) { tourGuideRepository.deleteById(auth.getTourGuide().getId()); auth.setTourGuide(null); }
+        if (auth.getAdmin() != null) { adminRepository.deleteById(auth.getAdmin().getId()); auth.setAdmin(null); }
+
+        auth.setUserType(newType);
+
+        // Create the new role-specific record, mirroring addUser()
+        if (newType == UserType.TOURIST) {
+            Tourist tourist = new Tourist();
+            tourist.setAuthEntity(auth);
+            auth.setTourist(tourist);
+            authEntityRepository.save(auth);
+            touristRepository.save(tourist);
+        } else if (newType == UserType.TOURGUIDE) {
+            TourGuide guide = new TourGuide();
+            guide.setAuthEntity(auth);
+            auth.setTourGuide(guide);
+            authEntityRepository.save(auth);
+            tourGuideRepository.save(guide);
+        } else {
+            Admin admin = new Admin();
+            admin.setAuthEntity(auth);
+            auth.setAdmin(admin);
+            authEntityRepository.save(auth);
+            adminRepository.save(admin);
+        }
+
+        return BasicResponse.ok();
+    }
+
+    @Transactional
+    public BasicResponse deleteUser(Integer id) throws UserException {
+        AuthEntity auth = authEntityRepository.findById(id)
+                .orElseThrow(() -> new UserException("No such user"));
+
+        if (auth.getTourist() != null) touristRepository.deleteById(auth.getTourist().getId());
+        if (auth.getTourGuide() != null) tourGuideRepository.deleteById(auth.getTourGuide().getId());
+        if (auth.getAdmin() != null) adminRepository.deleteById(auth.getAdmin().getId());
+        authEntityRepository.deleteById(id);
+
+        return BasicResponse.ok();
+    }
 
     @Transactional
     public Tourist getCurrentTourist() {

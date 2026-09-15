@@ -23,6 +23,8 @@ public class Discount {
     private List<TourPackage> applicablePackages;
 
     private String couponCode;
+    private String description;
+    private BigDecimal minAmount;
 
     private BigDecimal percentage;
     private BigDecimal fixed;
@@ -116,5 +118,21 @@ public class Discount {
 
     public void setCouponCode(String couponCode) {
         this.couponCode = couponCode;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public BigDecimal getMinAmount() {
+        return minAmount;
+    }
+
+    public void setMinAmount(BigDecimal minAmount) {
+        this.minAmount = minAmount;
     }
 }

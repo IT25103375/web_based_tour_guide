@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.KeyGenerator;
@@ -16,7 +17,8 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    private final String SECRET_KEY;
+    @Value("${jwt.secret}")
+    private String SECRET_KEY;
 
     public JwtUtil() throws NoSuchAlgorithmException {
         KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");

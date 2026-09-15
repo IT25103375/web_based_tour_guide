@@ -12,7 +12,7 @@ public class Event {
     @Id
     @GeneratedValue
     private Integer id;
-    
+
     private String displayName;
     @Column(nullable = false)
     private String location;
@@ -26,6 +26,16 @@ public class Event {
     private Instant startDate = Instant.now();
     @Column(nullable = false)
     private Instant endDate;
+
+    private Integer capacity;
+
+    public Integer getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(Integer capacity) {
+        this.capacity = capacity;
+    }
 
     public Integer getId() {
         return id;

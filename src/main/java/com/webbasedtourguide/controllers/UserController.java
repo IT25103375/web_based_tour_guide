@@ -3,7 +3,10 @@ import com.webbasedtourguide.dto.BasicResponse;
 import com.webbasedtourguide.dto.LoginRequest;
 import com.webbasedtourguide.dto.RegisterRequest;
 import com.webbasedtourguide.dto.TokenResponse;
+import com.webbasedtourguide.dto.UserAdminDTO;
+import com.webbasedtourguide.enums.UserType;
 import com.webbasedtourguide.exceptions.RegisterException;
+import com.webbasedtourguide.exceptions.UserException;
 import com.webbasedtourguide.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -11,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController // Rest api
 @CrossOrigin
@@ -65,5 +70,33 @@ public class UserController {
 
         return ResponseEntity.ok(SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal());
+    }
+
+    // --- Admin user management (used by the admin panel's Users tab) ---
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ROLE_AGENCYSTAFF', 'ROLE_TOURMANAGER')")
+    public List<UserAdminDTO> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
+    @PutMapping("/{id}/role")
+    @PreAuthorize("hasAnyRole('ROLE_AGENCYSTAFF', 'ROLE_TOURMANAGER')")
+    public ResponseEntity<String> updateUserRole(@PathVariable Integer id, @RequestParam UserType role) {
+        try {
+            return ResponseEntity.ok(userService.updateUserRole(id, role).getMessage());
+        } catch (UserException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_AGENCYSTAFF', 'ROLE_TOURMANAGER')")
+    public ResponseEntity<String> deleteUser(@PathVariable Integer id) {
+        try {
+            return ResponseEntity.ok(userService.deleteUser(id).getMessage());
+        } catch (UserException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
