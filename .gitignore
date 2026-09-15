@@ -1,0 +1,5 @@
+# H2 file database (add to the project's .gitignore)
+data/
+# frontend
+frontend/node_modules/
+frontend/dist/
