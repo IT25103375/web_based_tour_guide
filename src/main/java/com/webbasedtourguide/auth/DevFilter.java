@@ -10,9 +10,9 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @Profile("dev")
 public class DevFilter {
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) {
-        http.authorizeHttpRequests(a -> a.anyRequest().permitAll()).csrf(AbstractHttpConfigurer::disable);
-        return http.build();
-    }
+//    @Bean
+//    public SecurityFilterChain filterChain(HttpSecurity http) {
+//        http.authorizeHttpRequests(a -> a.anyRequest().permitAll()).csrf(AbstractHttpConfigurer::disable);
+//        return http.build();
+//    }
 }

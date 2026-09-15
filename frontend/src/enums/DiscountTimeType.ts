@@ -1,0 +1,1 @@
+export type DiscountTimeType = "TIMED" | "CODE" | "INVALID";

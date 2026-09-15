@@ -1,0 +1,1 @@
+export type DiscountPriceType = "FIXED" | "PERCENTAGE" | "INVALID";

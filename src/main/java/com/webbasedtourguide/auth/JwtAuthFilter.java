@@ -92,6 +92,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         // ONLY KEEP USER AUTH PAGES OPEN TO PUBLIC IN PROD
         return path.equals("/api/user/auth/login") ||
-                path.equals("/api/user/auth/register");
+                path.equals("/api/user/auth/register") ||
+                path.startsWith("/v3/api-docs/") ||
+                path.startsWith("/swagger-ui/") ||
+                path.startsWith("/swagger-ui.html");
     }
 }

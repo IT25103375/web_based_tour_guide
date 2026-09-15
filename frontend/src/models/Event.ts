@@ -1,0 +1,8 @@
+export interface Event {
+    id: number;
+    displayName: string;
+    location: string;
+    price: number;
+    startDate: string; // ISO instant
+    endDate: string; // ISO instant
+}

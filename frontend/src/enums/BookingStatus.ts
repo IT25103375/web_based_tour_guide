@@ -1,0 +1,1 @@
+export type BookingStatus = "UNCONFIRMED" | "BOOKED" | "FINISHED" | "CANCELLED";

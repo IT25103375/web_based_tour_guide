@@ -5,6 +5,7 @@ import com.webbasedtourguide.dto.RegisterRequest;
 import com.webbasedtourguide.dto.TokenResponse;
 import com.webbasedtourguide.exceptions.RegisterException;
 import com.webbasedtourguide.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
