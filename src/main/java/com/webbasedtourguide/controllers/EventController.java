@@ -11,7 +11,9 @@ import com.webbasedtourguide.service.EventService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/events")
@@ -46,6 +48,14 @@ public class EventController {
         return EventMapper.toDetailsDTO(event.get(), null);
     }
 
+    // Tourist: browse upcoming events available under a given package
+    @GetMapping("/package/{pkgId}")
+    public List<EventDetailsDTO> getEventsForPackage(@PathVariable Integer pkgId) {
+        return eventService.getEventsForPackage(pkgId).stream()
+                .map(event -> EventMapper.toDetailsDTO(event, null))
+                .collect(Collectors.toList());
+    }
+
     // Tourist: register for an event using an existing booking.
     // NOTE: touristId is taken as a request param here as a placeholder -- once
     // the auth side of the project exposes the logged-in tourist's id (e.g. via
@@ -53,8 +63,8 @@ public class EventController {
     // this param for that instead of trusting a value the client sends.
     @PostMapping("/register")
     public BasicResponse registerForEvent(@RequestParam Integer bookingId,
-                                          @RequestParam Integer eventId,
-                                          @RequestParam Integer touristId) throws EventException {
+                                           @RequestParam Integer eventId,
+                                           @RequestParam Integer touristId) throws EventException {
         return eventService.registerForEvent(bookingId, eventId, touristId);
     }
 

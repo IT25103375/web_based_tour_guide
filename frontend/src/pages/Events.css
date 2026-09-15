@@ -1,0 +1,86 @@
+.events-status {
+  padding: 12px 0;
+  color: #444;
+}
+
+.events-status--error {
+  color: #a3312a;
+}
+
+.events-status--success {
+  color: #1f6f43;
+}
+
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 520px;
+}
+
+.event-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid #d8d8d8;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.event-card:hover {
+  border-color: #999;
+}
+
+.event-card__name {
+  font-weight: 600;
+}
+
+.event-card__location {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.event-details {
+  max-width: 480px;
+}
+
+.event-details__location,
+.event-details__price,
+.event-details__count {
+  color: #555;
+  margin: 4px 0;
+}
+
+.event-details__register,
+.event-details__confirm button {
+  margin-top: 12px;
+  margin-right: 8px;
+  padding: 8px 16px;
+  border: 1px solid #333;
+  background: #fff;
+  cursor: pointer;
+}
+
+.admin-events__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 420px;
+  margin-bottom: 24px;
+}
+
+.admin-events__form input,
+.admin-events__form label {
+  padding: 6px 8px;
+}
+
+.admin-events__form button {
+  align-self: flex-start;
+  padding: 8px 16px;
+  border: 1px solid #333;
+  background: #fff;
+  cursor: pointer;
+}

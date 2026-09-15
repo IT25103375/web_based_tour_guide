@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -56,6 +57,11 @@ public class EventService {
 
     public Optional<Event> getValidEvent(Integer eventId, Integer pkgId) {
         return eventRepository.getValidEvent(eventId, pkgId, Instant.now());
+    }
+
+    // Lists upcoming events available under a given package (for the "browse events" page)
+    public List<Event> getEventsForPackage(Integer pkgId) {
+        return eventRepository.getValidEvents(pkgId, Instant.now());
     }
 
     // Registers a tourist for an event by linking their existing TourBooking to it.
