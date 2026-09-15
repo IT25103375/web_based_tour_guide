@@ -51,8 +51,8 @@ public class DestinationService {
         return BasicResponse.ok();
     }
 
-    public Iterable<Destination> getDestinations(List<Integer> ids) {
-        return destinationRepository.findAllById(ids);
+    public List<Destination> getDestinations() {
+        return (List<Destination>) destinationRepository.findAll();
     }
 
     public List<TourPackage> getPackagesByDestination(Integer destId) {

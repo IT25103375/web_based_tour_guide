@@ -118,17 +118,17 @@ public class UserService {
     // TODO: Implement logout with a blacklist cache since JWT is stateless
 
     @Transactional
-    public Tourist getCurrentTourist() throws UserException {
+    public Tourist getCurrentTourist() {
         return touristRepository.findByAuthEntity_Email(((AuthEntity) SecurityContextHolder.getContext().
                         getAuthentication().getPrincipal()).getEmail())
-                .orElseThrow(() -> new UserException("No such tourist"));
+                .orElseThrow(() -> new EntityNotFoundException("No such tourist"));
     }
 
     @Transactional
-    public TourGuide getCurrentGuide() throws UserException {
+    public TourGuide getCurrentGuide() {
         return tourGuideRepository.findByAuthEntity_Email(((AuthEntity) SecurityContextHolder.getContext().
                         getAuthentication().getPrincipal()).getEmail())
-                .orElseThrow(() -> new UserException("No such tour guide"));
+                .orElseThrow(() -> new EntityNotFoundException("No such tour guide"));
     }
 
 //    @PreAuthorize("hasAnyRole('ROLE_PASSENGER', 'ROLE_DRIVER')")

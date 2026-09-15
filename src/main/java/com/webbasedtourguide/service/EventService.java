@@ -2,14 +2,17 @@ package com.webbasedtourguide.service;
 
 import com.webbasedtourguide.dto.BasicResponse;
 import com.webbasedtourguide.dto.EventControlDTO;
+import com.webbasedtourguide.dto.EventDetailsDTO;
 import com.webbasedtourguide.entities.Event;
 import com.webbasedtourguide.exceptions.EventException;
 import com.webbasedtourguide.exceptions.PackageException;
+import com.webbasedtourguide.mappers.EventMapper;
 import com.webbasedtourguide.repositories.EventRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -17,10 +20,12 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final TourPackageService tourPackageService;
+    private final EventMapper eventMapper;
 
-    EventService(EventRepository eventRepository, TourPackageService tourPackageService) {
+    EventService(EventRepository eventRepository, TourPackageService tourPackageService, EventMapper eventMapper) {
         this.eventRepository = eventRepository;
         this.tourPackageService = tourPackageService;
+        this.eventMapper = eventMapper;
     }
 
     @Transactional
@@ -49,5 +54,9 @@ public class EventService {
 
     public Optional<Event> getValidEvent(Integer eventId, Integer pkgId) {
         return eventRepository.getValidEvent(eventId, pkgId, Instant.now());
+    }
+
+    public List<EventDetailsDTO> getValidEvents(Integer pkgId) {
+        return eventMapper.toDtoList(eventRepository.getValidEvents(pkgId, Instant.now()));
     }
 }

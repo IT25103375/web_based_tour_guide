@@ -1,8 +1,10 @@
 package com.webbasedtourguide.service;
 
+import com.webbasedtourguide.dto.TourPackageDTO;
 import com.webbasedtourguide.entities.Destination;
 import com.webbasedtourguide.entities.TourPackage;
 import com.webbasedtourguide.exceptions.PackageException;
+import com.webbasedtourguide.mappers.TourPackageMapper;
 import com.webbasedtourguide.repositories.TourPackageRepository;
 import org.springframework.stereotype.Service;
 
@@ -13,9 +15,11 @@ import java.util.List;
 public class TourPackageService {
 
     private final TourPackageRepository tourPackageRepository;
+    private final TourPackageMapper tourPackageMapper;
 
-    TourPackageService(TourPackageRepository tourPackageRepository) {
+    TourPackageService(TourPackageRepository tourPackageRepository, TourPackageMapper tourPackageMapper) {
         this.tourPackageRepository = tourPackageRepository;
+        this.tourPackageMapper = tourPackageMapper;
     }
 
     public List<TourPackage> getPackages(List<Integer> ids) throws PackageException {
@@ -51,5 +55,9 @@ public class TourPackageService {
                 .orElseThrow(() -> new PackageException("Cannot find package"));
 
         return tourPackage.getOfferedDestinations();
+    }
+
+    public List<TourPackageDTO> getAllPackages() {
+        return tourPackageMapper.toDtoList((List<TourPackage>) tourPackageRepository.findAll());
     }
 }

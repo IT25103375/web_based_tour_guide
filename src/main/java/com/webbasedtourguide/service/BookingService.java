@@ -7,12 +7,14 @@ import com.webbasedtourguide.entities.Event;
 import com.webbasedtourguide.entities.TourBooking;
 import com.webbasedtourguide.enums.BookingStatus;
 import com.webbasedtourguide.exceptions.*;
+import com.webbasedtourguide.mappers.BookingMapper;
 import com.webbasedtourguide.repositories.BookingRepository;
 import com.webbasedtourguide.repositories.TourPackageRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 
 @Service
 public class BookingService {
@@ -23,32 +25,34 @@ public class BookingService {
     private final TourGuideService tourGuideService;
     private final DiscountService discountService;
     private final EventService eventService;
+    private final BookingMapper bookingMapper;
 
     BookingService(TourPackageRepository packageRepository, BookingRepository bookingRepository, UserService userService, TourGuideService tourGuideService,
-                   DiscountService discountService, EventService eventService) {
+                   DiscountService discountService, EventService eventService, BookingMapper bookingMapper) {
         this.packageRepository = packageRepository;
         this.bookingRepository = bookingRepository;
         this.userService = userService;
         this.tourGuideService = tourGuideService;
         this.discountService = discountService;
         this.eventService = eventService;
+        this.bookingMapper = bookingMapper;
     }
 
     @Transactional
     public BasicResponse BookNewTour(BookingDetailsDTO request) throws TourException, GuideException, UserException {
 
         // TODO : Handle exceptions properly / implement exception handler
-        if (request.getBookedTime().isBefore(Instant.now())) throw new TourException("Invalid date");
+        if (request.getBookedDate().isBefore(Instant.now())) throw new TourException("Invalid date");
 
         TourBooking booking = new TourBooking();
         booking.setBooker(userService.getCurrentTourist());
         booking.setTourPackage(packageRepository.findById(request.getPackageId()).
                 orElseThrow(() -> new TourException("Package not found")));
-        booking.setGuide(tourGuideService.findSuitableGuide(request.getBookedTime()));
+        booking.setGuide(tourGuideService.findSuitableGuide(request.getBookedDate()));
         booking.setDiscount(discountService.getDiscount(request.getCouponCode(), request.getPackageId()));
         booking.setFinalPrice(discountService.applyDiscount(
                 booking.getTourPackage().getPrice(), booking.getDiscount()));
-        booking.setBookedDate(request.getBookedTime());
+        booking.setBookedDate(request.getBookedDate());
         booking.setStatus(BookingStatus.BOOKED);
 
         bookingRepository.save(booking);
@@ -57,7 +61,7 @@ public class BookingService {
         response.setPackageName(booking.getTourPackage().getDisplayName());
         response.setGuideName(booking.getGuide().getName());
         response.setFinalPrice(booking.getFinalPrice());
-        response.setBookedTime(booking.getBookedDate());
+        response.setBookedDate(booking.getBookedDate());
 
         return response;
     }
@@ -78,7 +82,7 @@ public class BookingService {
         Event event = eventService.getValidEvent(request.getEventId(), request.getPkgId())
                 .orElseThrow(() -> new TourException("No such event"));
         TourBooking booking = bookingRepository.
-                getTourBookingByIdAndUserId(request.getPkgId(), userService.getCurrentTourist().getId())
+                verifyTourBooking(request.getPkgId(), userService.getCurrentTourist().getId())
                 .orElseThrow(() -> new TourException("No such booking"));
 
         booking.setEvent(event);
@@ -87,5 +91,10 @@ public class BookingService {
         request.setSuccess(true);
         request.setMessage("Success");
         return request;
+    }
+
+    public List<BookingDetailsDTO> getAllBookingsForUser() {
+        return bookingMapper.toDtoList(bookingRepository.getTourBookingsById(
+                userService.getCurrentTourist().getId()));
     }
 }

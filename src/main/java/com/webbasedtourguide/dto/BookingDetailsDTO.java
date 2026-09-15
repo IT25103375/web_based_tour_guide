@@ -7,15 +7,13 @@ import java.time.Instant;
 
 public class BookingDetailsDTO extends BasicResponse {
 
-    @NotNull
+    private Integer bookingId;
     private Integer bookerId;
     @NotNull
     private Integer packageId;
-    private Integer bookingId;
     private Integer guideId;
 
-    @NotNull
-    private Instant bookedTime;
+    private Instant bookedDate;
     private String couponCode;
 
     // For display purposes
@@ -52,12 +50,12 @@ public class BookingDetailsDTO extends BasicResponse {
         this.guideId = guideId;
     }
 
-    public Instant getBookedTime() {
-        return bookedTime;
+    public Instant getBookedDate() {
+        return bookedDate;
     }
 
-    public void setBookedTime(Instant bookedTime) {
-        this.bookedTime = bookedTime;
+    public void setBookedDate(Instant bookedDate) {
+        this.bookedDate = bookedDate;
     }
 
     public String getCouponCode() {

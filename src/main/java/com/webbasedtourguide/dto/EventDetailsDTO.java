@@ -1,11 +1,8 @@
 package com.webbasedtourguide.dto;
 
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.List;
 
 public class EventDetailsDTO extends BasicResponse {
 
@@ -17,9 +14,9 @@ public class EventDetailsDTO extends BasicResponse {
     private String location;
 
     // For display purposes
-    private String eventName;
+    private String displayName;
     private String packageName;
-    private BigDecimal finalPrice;
+    private BigDecimal price;
 
     public EventDetailsDTO() {
         super();
@@ -33,12 +30,12 @@ public class EventDetailsDTO extends BasicResponse {
         this.packageName = packageName;
     }
 
-    public BigDecimal getFinalPrice() {
-        return finalPrice;
+    public BigDecimal getPrice() {
+        return price;
     }
 
-    public void setFinalPrice(BigDecimal finalPrice) {
-        this.finalPrice = finalPrice;
+    public void setPrice(BigDecimal price) {
+        this.price = price;
     }
 
     public Integer getEventId() {
@@ -49,12 +46,12 @@ public class EventDetailsDTO extends BasicResponse {
         this.eventId = eventId;
     }
 
-    public String getEventName() {
-        return eventName;
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public void setEventName(String eventName) {
-        this.eventName = eventName;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public String getLocation() {
