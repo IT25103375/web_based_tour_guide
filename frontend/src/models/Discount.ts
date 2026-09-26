@@ -7,6 +7,7 @@ export interface Discount {
     couponCode?: string;
     percentage?: number;
     fixed?: number;
+    minAmount: number;
     discountPriceType: DiscountPriceType;
     discountTimeType: DiscountTimeType;
     startDate: string; // ISO instant

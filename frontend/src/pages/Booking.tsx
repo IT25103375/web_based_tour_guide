@@ -19,11 +19,11 @@ import {
 import { Close, CheckCircle, LocalOffer } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
-import { tourPackages as mockPackages, discounts } from "../data/mockData";
 import { tourPackageAPI } from "../services/TourPackageService";
 import { bookingAPI } from "../services/BookingService";
+import {TourPackage} from "@/models/TourPackage.ts";
 
-interface Package {
+export interface Package {
   id: number;
   name: string;
   destination: string;
@@ -36,29 +36,27 @@ interface Package {
 }
 
 export default function Booking() {
-  const [tourPackages, setTourPackages] = useState<Package[]>(mockPackages);
+  const [tourPackages, setTourPackages] = useState<Package[]>([]);
   const [selected, setSelected] = useState<Package | null>(null);
   const [date, setDate] = useState("");
   const [coupon, setCoupon] = useState("");
   const [couponResult, setCouponResult] = useState<{ valid: boolean; pct: number; msg: string } | null>(null);
   const [confirmed, setConfirmed] = useState(false);
 
-  // Load real packages from the backend; fall back to mock data on failure
-  // so the page still demos even if the API is unreachable.
   useEffect(() => {
     tourPackageAPI.getPackages().then((res) => {
       const data = res?.data;
       if (Array.isArray(data) && data.length > 0) {
         setTourPackages(
-            data.map((pkg: any, i: number) => ({
+            data.map((pkg: TourPackage, i: number) => ({
               id: pkg.id,
               name: pkg.displayName,
-              destination: mockPackages[i % mockPackages.length].destination,
+              destination: pkg.offeredDestinationNames.join(", "),
               price: pkg.price,
-              duration: mockPackages[i % mockPackages.length].duration,
-              description: mockPackages[i % mockPackages.length].description,
-              image: mockPackages[i % mockPackages.length].image,
-              maxCapacity: mockPackages[i % mockPackages.length].maxCapacity,
+              duration: pkg.duration.toString(),
+              description: pkg.description,
+              image: "",
+              maxCapacity: pkg.capacity,
               available: true,
             }))
         );
@@ -69,16 +67,16 @@ export default function Booking() {
   const discount = couponResult?.valid ? couponResult.pct : 0;
   const total = selected ? Math.round(selected.price * (1 - discount / 100)) : 0;
 
-  const applyCoupon = () => {
-    const found = discounts.find((d) => d.code === coupon.toUpperCase() && d.active);
-    if (!found) {
-      setCouponResult({ valid: false, pct: 0, msg: "Invalid or expired coupon code." });
-    } else if (selected && selected.price < found.minAmount) {
-      setCouponResult({ valid: false, pct: 0, msg: `Minimum booking amount of LKR ${found.minAmount.toLocaleString()} required.` });
-    } else {
-      setCouponResult({ valid: true, pct: found.percentage, msg: `${found.percentage}% discount applied!` });
-    }
-  };
+  // const applyCoupon = () => {
+  //   const found = discounts.find((d) => d.code === coupon.toUpperCase() && d.active);
+  //   if (!found) {
+  //     setCouponResult({ valid: false, pct: 0, msg: "Invalid or expired coupon code." });
+  //   } else if (selected && selected.price < found.minAmount) {
+  //     setCouponResult({ valid: false, pct: 0, msg: `Minimum booking amount of LKR ${found.minAmount.toLocaleString()} required.` });
+  //   } else {
+  //     setCouponResult({ valid: true, pct: found.percentage, msg: `${found.percentage}% discount applied!` });
+  //   }
+  // };
 
   const handleClose = () => {
     setSelected(null);
@@ -200,7 +198,7 @@ export default function Booking() {
                           fullWidth
                           slotProps={{ input: { startAdornment: <LocalOffer sx={{ mr: 1, color: "text.secondary", fontSize: 18 }} /> } }}
                       />
-                      <Button variant="outlined" onClick={applyCoupon} sx={{ flexShrink: 0 }}>Apply</Button>
+                      <Button variant="outlined" onClick={undefined/*applyCoupon*/} sx={{ flexShrink: 0 }}>Apply</Button>
                     </Box>
                     {couponResult && (
                         <Alert severity={couponResult.valid ? "success" : "error"} sx={{ py: 0.5 }}>

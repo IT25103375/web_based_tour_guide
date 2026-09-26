@@ -13,6 +13,7 @@ public class Destination {
     
     private String displayName;
     private String location;
+    private String destination;
 
     @ManyToMany(mappedBy = "offeredDestinations")
     List<TourPackage> offeredPackages;
@@ -47,5 +48,13 @@ public class Destination {
 
     public void setOfferedPackages(List<TourPackage> offeredPackages) {
         this.offeredPackages = offeredPackages;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
     }
 }

@@ -18,14 +18,16 @@ import java.io.IOException;
 import java.util.Optional;
 
 @Component
-@Profile("!dev")
+//@Profile("!dev")
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
+    private final AuthEntityRepository authEntityRepository;
 
-    @Autowired
-    private AuthEntityRepository authEntityRepository;
+    public JwtAuthFilter(JwtUtil jwtUtil, AuthEntityRepository authEntityRepository) {
+        this.jwtUtil = jwtUtil;
+        this.authEntityRepository = authEntityRepository;
+    }
 
     @Override
     @NullMarked
@@ -95,6 +97,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 path.equals("/api/user/auth/register") ||
                 path.startsWith("/v3/api-docs/") ||
                 path.startsWith("/swagger-ui/") ||
-                path.startsWith("/swagger-ui.html");
+                path.startsWith("/swagger-ui.html") ||
+                path.startsWith("/h2-console/*");
     }
 }

@@ -1,28 +1,22 @@
 import axios from "axios";
 import { handleError } from "../helpers/ErrorHandler";
 import type { UserType } from "../enums/UserType.ts";
+import {UserPost} from "@/models/User.ts";
 
 const api = "http://localhost:8090/";
-
-export interface UserAdmin {
-    id: number;
-    username: string;
-    email: string;
-    userType: UserType;
-}
 
 export const userAdminAPI = {
     getUsers: async () => {
         try {
-            return await axios.get<UserAdmin[]>(api + "api/user");
+            return await axios.get<UserPost[]>(api + "api/user");
         } catch (error) {
             handleError(error);
         }
     },
 
-    addUser: async (username: string, email: string, password: string, userType: UserType) => {
+    addUser: async (userDetails: UserPost) => {
         try {
-            return await axios.post(api + "api/user/auth/register", { username, email, password, userType });
+            return await axios.post(api + "api/user/auth/register", userDetails);
         } catch (error) {
             handleError(error);
         }

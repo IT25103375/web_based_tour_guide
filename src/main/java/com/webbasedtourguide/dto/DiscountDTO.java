@@ -1,43 +1,25 @@
-package com.webbasedtourguide.entities;
+package com.webbasedtourguide.dto;
 
 import com.webbasedtourguide.enums.DiscountPriceType;
 import com.webbasedtourguide.enums.DiscountTimeType;
-import jakarta.persistence.*;
-import org.jspecify.annotations.NonNull;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.List;
 
-@Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "discount_type", discriminatorType = DiscriminatorType.STRING)
-public class Discount {
+public class DiscountDTO {
 
-    @Id
-    @GeneratedValue
     private Integer id;
-
-    @ManyToMany(mappedBy = "offeredDiscounts")
-    private List<TourPackage> applicablePackages;
-
     private String couponCode;
-    private BigDecimal minAmount;
-
     private BigDecimal percentage;
     private BigDecimal fixed;
-
-    @Column(nullable = false)
-    private DiscountPriceType discountPriceType = DiscountPriceType.INVALID;
-
-    @Column(nullable = false)
-    private DiscountTimeType discountTimeType = DiscountTimeType.INVALID;
-
-    @Column(nullable = false)
+    private BigDecimal minAmount;
+    private DiscountPriceType discountPriceType;
+    private DiscountTimeType discountTimeType;
     private Instant startDate;
-    @Column(nullable = false)
     private Instant endDate;
+
+    private List<Integer> applicablePackagesIds;
 
     public Integer getId() {
         return id;
@@ -47,12 +29,28 @@ public class Discount {
         this.id = id;
     }
 
+    public String getCouponCode() {
+        return couponCode;
+    }
+
+    public void setCouponCode(String couponCode) {
+        this.couponCode = couponCode;
+    }
+
     public BigDecimal getPercentage() {
         return percentage;
     }
 
     public void setPercentage(BigDecimal percentage) {
         this.percentage = percentage;
+    }
+
+    public BigDecimal getMinAmount() {
+        return minAmount;
+    }
+
+    public void setMinAmount(BigDecimal minAmount) {
+        this.minAmount = minAmount;
     }
 
     public BigDecimal getFixed() {
@@ -95,35 +93,11 @@ public class Discount {
         this.endDate = endDate;
     }
 
-    public List<TourPackage> getApplicablePackages() {
-        return applicablePackages;
+    public List<Integer> getApplicablePackagesIds() {
+        return applicablePackagesIds;
     }
 
-    public void removeTourPackages(Object o) {
-        this.applicablePackages.remove(o);
-    }
-
-    public void addTourPackage(TourPackage tourPackage) {
-        this.applicablePackages.add(tourPackage);
-    }
-
-    public void addAllTourPackages(@NonNull Collection<? extends TourPackage> c) {
-        this.applicablePackages.addAll(c);
-    }
-
-    public String getCouponCode() {
-        return couponCode;
-    }
-
-    public void setCouponCode(String couponCode) {
-        this.couponCode = couponCode;
-    }
-
-    public BigDecimal getMinAmount() {
-        return minAmount;
-    }
-
-    public void setMinAmount(BigDecimal minAmount) {
-        this.minAmount = minAmount;
+    public void setApplicablePackagesIds(List<Integer> applicablePackagesIds) {
+        this.applicablePackagesIds = applicablePackagesIds;
     }
 }

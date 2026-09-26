@@ -30,19 +30,19 @@ import {useAuth} from "@/context/useAuth.tsx";
 
 const DRAWER_WIDTH = 240;
 
-const navItems = [
-    { label: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-    { label: "Book a Tour", icon: <BookOnline />, path: "/booking" },
-    { label: "Book Events", icon: <Event />, path: "/events" },
-    { label: "Search Destinations", icon: <Search />, path: "/destinations" },
-    { label: "Admin Panel", icon: <AdminPanelSettings />, path: "/admin" },
-];
-
 export default function Layout({ children }: { children: React.ReactNode }) {
     const navigate = useNavigate();
     const location = useLocation();
     const [mobileOpen, setMobileOpen] = useState(false);
-    const {logout, user} = useAuth();
+    const {logout, user, isAdmin} = useAuth();
+
+    const navItems = [
+        { label: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
+        { label: "Book a Tour", icon: <BookOnline />, path: "/booking" },
+        { label: "Book Events", icon: <Event />, path: "/events" },
+        { label: "Search Destinations", icon: <Search />, path: "/destinations" },
+        isAdmin() && { label: "Admin Panel", icon: <AdminPanelSettings />, path: "/admin" },
+    ].filter((item): item is {label: string, icon: any, path: string} => Boolean(item));
 
     const drawerContent = (
         <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>

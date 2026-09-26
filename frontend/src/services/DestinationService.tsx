@@ -24,26 +24,17 @@ export const destinationAPI = {
         }
     },
 
-    addDestination: async (displayName: string, location: string, offeredPackageIds: number[] = []) => {
+    addDestination: async (destination: Omit<Destination, "id">) => {
         try {
-            return await axios.post<string>(api + "api/destination", {
-                displayName,
-                location,
-                offeredPackageIds,
-            });
+            return await axios.post<string>(api + "api/destination", destination);
         } catch (error) {
             handleError(error);
         }
     },
 
-    editDestination: async (id: number, displayName: string, location: string, offeredPackageIds: number[] = []) => {
+    editDestination: async (destination: Destination) => {
         try {
-            return await axios.put<string>(api + "api/destination", {
-                id,
-                displayName,
-                location,
-                offeredPackageIds,
-            });
+            return await axios.put<string>(api + "api/destination", destination);
         } catch (error) {
             handleError(error);
         }

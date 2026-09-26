@@ -7,6 +7,7 @@ public class DestinationDTO {
     private Integer id;
     private String displayName;
     private String location;
+    private String description;
     private List<Integer> offeredPackageIds;
 
     public Integer getId() {
@@ -39,5 +40,13 @@ public class DestinationDTO {
 
     public void setOfferedPackageIds(List<Integer> offeredPackageIds) {
         this.offeredPackageIds = offeredPackageIds;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

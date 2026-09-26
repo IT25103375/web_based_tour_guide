@@ -13,26 +13,17 @@ export const tourPackageAPI = {
         }
     },
 
-    addPackage: async (displayName: string, price: number, offeredDestinationIds: number[] = []) => {
+    addPackage: async (tourPackage: Omit<TourPackage, "id">) => {
         try {
-            return await axios.post<TourPackage>(api + "api/pacakge", {
-                displayName,
-                price,
-                offeredDestinationIds,
-            });
+            return await axios.post<TourPackage>(api + "api/pacakge", tourPackage);
         } catch (error) {
             handleError(error);
         }
     },
 
-    editPackage: async (id: number, displayName: string, price: number, offeredDestinationIds: number[] = []) => {
+    editPackage: async (tourPackage: TourPackage) => {
         try {
-            return await axios.put<TourPackage>(api + "api/pacakge", {
-                id,
-                displayName,
-                price,
-                offeredDestinationIds,
-            });
+            return await axios.put<TourPackage>(api + "api/pacakge", tourPackage);
         } catch (error) {
             handleError(error);
         }

@@ -61,4 +61,14 @@ public class IdResolver {
                 .map(Destination::getId)
                 .collect(Collectors.toList());
     }
+
+    @Named("destinationsToNames")
+    public List<String> destinationsToNames(List<Destination> destinations) {
+        if (destinations == null) {
+            return null;
+        }
+        return destinations.stream()
+                .map(Destination::getDisplayName)
+                .collect(Collectors.toList());
+    }
 }

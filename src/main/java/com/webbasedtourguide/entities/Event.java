@@ -28,6 +28,7 @@ public class Event {
     private Instant endDate;
 
     private Integer capacity;
+    private String description;
 
     public Integer getCapacity() {
         return capacity;
@@ -91,5 +92,13 @@ public class Event {
 
     public void setApplicablePackages(List<TourPackage> applicablePackages) {
         this.applicablePackages = applicablePackages;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

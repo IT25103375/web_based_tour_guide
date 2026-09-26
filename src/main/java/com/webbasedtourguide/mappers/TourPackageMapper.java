@@ -11,6 +11,7 @@ import java.util.List;
 public interface TourPackageMapper {
 
     @Mapping(target = "offeredDestinationIds", source = "offeredDestinations", qualifiedByName = "destinationsToIds")
+    @Mapping(target = "offeredDestinationNames", source = "offeredDestinations", qualifiedByName = "destinationsToNames")
     TourPackageDTO toDto(TourPackage tourPackage);
 
     @Mapping(target = "offeredDestinations", source = "offeredDestinationIds", qualifiedByName = "idsToDestinations")

@@ -12,6 +12,8 @@ public class EventDetailsDTO extends BasicResponse {
     private Integer pkgId;
     @NotNull
     private String location;
+    private Integer capacity;
+    private String description;
 
     // For display purposes
     private String displayName;
@@ -68,5 +70,21 @@ public class EventDetailsDTO extends BasicResponse {
 
     public void setPkgId(Integer pkgId) {
         this.pkgId = pkgId;
+    }
+
+    public Integer getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(Integer capacity) {
+        this.capacity = capacity;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

@@ -1,37 +1,31 @@
 import axios from "axios";
 import { handleError } from "../helpers/ErrorHandler";
+import {DiscountPriceType} from "@/enums/DiscountPriceType.ts";
+import {DiscountTimeType} from "@/enums/DiscountTimeType.ts";
+import {Discount, DiscountList} from "@/models/Discount.ts";
 
 const api = "http://localhost:8090/";
-
-export interface DiscountAdmin {
-    id: number;
-    code: string;
-    description: string;
-    percentage: number;
-    minAmount: number;
-    active: boolean;
-}
 
 export const discountAPI = {
     getDiscounts: async () => {
         try {
-            return await axios.get<DiscountAdmin[]>(api + "api/discount");
+            return await axios.get<DiscountList[]>(api + "api/discount");
         } catch (error) {
             handleError(error);
         }
     },
 
-    addDiscount: async (code: string, description: string, percentage: number, minAmount: number, active: boolean) => {
+    addDiscount: async (discount: Omit<Discount, "id">) => {
         try {
-            return await axios.post<string>(api + "api/discount", { code, description, percentage, minAmount, active });
+            return await axios.post<string>(api + "api/discount", discount);
         } catch (error) {
             handleError(error);
         }
     },
 
-    editDiscount: async (id: number, code: string, description: string, percentage: number, minAmount: number, active: boolean) => {
+    editDiscount: async (discount: Discount) => {
         try {
-            return await axios.put<string>(api + "api/discount", { id, code, description, percentage, minAmount, active });
+            return await axios.put<string>(api + "api/discount", discount);
         } catch (error) {
             handleError(error);
         }

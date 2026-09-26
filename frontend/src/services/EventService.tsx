@@ -1,31 +1,20 @@
 import axios from "axios";
 import { handleError } from "../helpers/ErrorHandler";
-import type { EventList } from "../models/Event.ts";
+import {Event, EventList} from "../models/Event.ts";
 
 const api = "http://localhost:8090/";
 
-export interface EventAdmin {
-    eventId: number;
-    eventName: string;
-    location: string;
-    price: number;
-    startDate: string; // ISO instant
-    endDate: string; // ISO instant
-    capacity: number;
-    applicablePackages: number[];
-}
-
 export const eventAPI = {
-    // --- Admin CRUD ---
+
     getAllEventsAdmin: async () => {
         try {
-            return await axios.get<EventAdmin[]>(api + "api/event/admin");
+            return await axios.get<EventList[]>(api + "api/event/admin");
         } catch (error) {
             handleError(error);
         }
     },
 
-    addEvent: async (event: Omit<EventAdmin, "eventId">) => {
+    addEvent: async (event: Omit<Event, "eventId">) => {
         try {
             return await axios.post<string>(api + "api/event/admin", event);
         } catch (error) {
@@ -33,7 +22,7 @@ export const eventAPI = {
         }
     },
 
-    editEvent: async (event: EventAdmin) => {
+    editEvent: async (event: Event) => {
         try {
             return await axios.put<string>(api + "api/event/admin", event);
         } catch (error) {
@@ -49,7 +38,6 @@ export const eventAPI = {
         }
     },
 
-    // Backend binds pkgId from a JSON body on a GET request
     getEventsByPackage: async (pkgId: number) => {
         try {
             return await axios.get<EventList>(api + "api/event", {
@@ -60,13 +48,11 @@ export const eventAPI = {
         }
     },
 
-    // Backend binds EventDetailsDTO as request params (no @RequestBody), so send as form data
-    registerEvent: async (eventId: number, pkgId: number, location: string) => {
+    registerEvent: async (eventId: number, pkgId: number) => {
         try {
             const form = new URLSearchParams();
             form.append("eventId", String(eventId));
             form.append("pkgId", String(pkgId));
-            form.append("location", location);
             return await axios.post<string>(api + "api/event/book", form, {
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
             });

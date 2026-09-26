@@ -16,6 +16,9 @@ public class TourPackage {
 
     private String displayName;
     private BigDecimal price;
+    private int duration;
+    private String description;
+    private int capacity;
 
     @ManyToMany
     private List<Destination> offeredDestinations;
@@ -68,5 +71,29 @@ public class TourPackage {
 
     public void addAllDestinations(@NonNull Collection<? extends Destination> c) {
         this.offeredDestinations.addAll(c);
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
     }
 }

@@ -20,12 +20,6 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String SECRET_KEY;
 
-    public JwtUtil() throws NoSuchAlgorithmException {
-        KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
-        SecretKey sk = keyGen.generateKey();
-        SECRET_KEY = Encoders.BASE64.encode(sk.getEncoded());
-    }
-
     private String getSECRET_KEY() {
         return SECRET_KEY;
     }
