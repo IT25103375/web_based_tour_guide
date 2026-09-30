@@ -1,13 +1,10 @@
 package com.webbasedtourguide.controllers;
 
 import com.webbasedtourguide.dto.BookingDetailsDTO;
-import com.webbasedtourguide.dto.EventDetailsDTO;
 import com.webbasedtourguide.exceptions.GuideException;
 import com.webbasedtourguide.exceptions.TourException;
 import com.webbasedtourguide.exceptions.UserException;
 import com.webbasedtourguide.service.BookingService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +32,7 @@ class BookingController {
     @PreAuthorize("hasRole('ROLE_TOURIST')")
     public ResponseEntity<String> bookTour(BookingDetailsDTO request) {
         try {
-            return ResponseEntity.ok().body(bookingService.BookNewTour(request).getMessage());
+            return ResponseEntity.ok().body(bookingService.bookNewTour(request).getMessage());
         } catch (TourException | UserException | GuideException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

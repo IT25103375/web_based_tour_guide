@@ -1,5 +1,6 @@
 package com.webbasedtourguide.service;
 
+import com.webbasedtourguide.abstracts.AuthEntityDependent;
 import com.webbasedtourguide.auth.JwtUtil;
 import com.webbasedtourguide.dto.BasicResponse;
 import com.webbasedtourguide.dto.LoginRequest;
@@ -192,6 +193,19 @@ public class UserService {
         return tourGuideRepository.findByAuthEntity_Email(((AuthEntity) SecurityContextHolder.getContext().
                         getAuthentication().getPrincipal()).getEmail())
                 .orElseThrow(() -> new EntityNotFoundException("No such tour guide"));
+    }
+
+    @Transactional
+    public AuthEntity getCurrentUser() {
+        return authEntityRepository.findByEmail(((AuthEntity) SecurityContextHolder.getContext().
+                getAuthentication().getPrincipal()).getEmail())
+                .orElseThrow(() -> new EntityNotFoundException("No such Auth Entity"));
+    }
+
+    @Transactional
+    public AuthEntity getUser(int authEntityId) {
+        return authEntityRepository.findById(authEntityId)
+                .orElseThrow(() -> new EntityNotFoundException("No such Auth Entity"));
     }
 
 //    @PreAuthorize("hasAnyRole('ROLE_PASSENGER', 'ROLE_DRIVER')")

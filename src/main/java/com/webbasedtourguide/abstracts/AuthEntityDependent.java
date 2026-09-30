@@ -4,7 +4,7 @@ import com.webbasedtourguide.entities.AuthEntity;
 import jakarta.persistence.*;
 
 @MappedSuperclass
-public abstract class AuthEntityDependent {
+public abstract class AuthEntityDependent extends NotificationObserver {
 
     @OneToOne(optional = false)
     @JoinColumn(nullable = false, unique = true)

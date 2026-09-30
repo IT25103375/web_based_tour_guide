@@ -4,6 +4,7 @@ import com.webbasedtourguide.abstracts.AuthEntityDependent;
 import jakarta.persistence.*;
 
 @Entity
+@DiscriminatorValue("TOURIST")
 public class Tourist extends AuthEntityDependent {
 
     @Id

@@ -18,6 +18,7 @@ public class TourPackageDTO {
     private String description;
     private int capacity;
 
+    private List<String> offeredDestinationNames;
     private List<Integer> offeredDestinationIds;
 
     public Integer getId() {
@@ -74,5 +75,13 @@ public class TourPackageDTO {
 
     public void setCapacity(int capacity) {
         this.capacity = capacity;
+    }
+
+    public List<String> getOfferedDestinationNames() {
+        return offeredDestinationNames;
+    }
+
+    public void setOfferedDestinationNames(List<String> offeredDestinationNames) {
+        this.offeredDestinationNames = offeredDestinationNames;
     }
 }

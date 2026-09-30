@@ -39,7 +39,7 @@ public class BookingService {
     }
 
     @Transactional
-    public BasicResponse BookNewTour(BookingDetailsDTO request) throws TourException, GuideException, UserException {
+    public BasicResponse bookNewTour(BookingDetailsDTO request) throws TourException, GuideException, UserException {
 
         // TODO : Handle exceptions properly / implement exception handler
         if (request.getBookedDate().isBefore(Instant.now())) throw new TourException("Invalid date");
@@ -55,6 +55,7 @@ public class BookingService {
         booking.setBookedDate(request.getBookedDate());
         booking.setStatus(BookingStatus.BOOKED);
 
+        tourGuideService.setGuideBooked(booking.getGuide().getId());
         bookingRepository.save(booking);
 
         BookingDetailsDTO response = new BookingDetailsDTO();

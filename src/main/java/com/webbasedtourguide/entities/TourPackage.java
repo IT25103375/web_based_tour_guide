@@ -6,6 +6,7 @@ import org.jspecify.annotations.NonNull;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 public class TourPackage {
@@ -28,6 +29,9 @@ public class TourPackage {
 
     @ManyToMany
     private List<Discount> offeredDiscounts;
+
+    @OneToMany
+    private List<Rating> ratings;
 
     public Integer getId() {
         return id;
@@ -95,5 +99,19 @@ public class TourPackage {
 
     public void setCapacity(int capacity) {
         this.capacity = capacity;
+    }
+
+    public void addRating(Rating rating) {
+        ratings.add(rating);
+    }
+
+    public List<Rating> getRatings(int count) {
+        return ratings.subList(0, Math.min(ratings.size(), count));
+    }
+
+    public int getRatingAvg() {
+        return (int) ratings.stream().mapToInt(Rating::getStarRating)
+                .average()
+                .orElse(0);
     }
 }

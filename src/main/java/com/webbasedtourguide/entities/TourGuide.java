@@ -11,6 +11,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 @Entity
+@DiscriminatorValue("TOURGUIDE")
 public class TourGuide extends AuthEntityDependent {
 
     @Id
@@ -24,6 +25,12 @@ public class TourGuide extends AuthEntityDependent {
 
     @Column(nullable = false)
     private GuideStatus status = GuideStatus.AVAILABLE;
+
+    @Column(nullable = false)
+    private String[] languages;
+
+    @OneToMany
+    private List<Rating> ratings;
 
     public Integer getId() {
         return id;
@@ -48,5 +55,35 @@ public class TourGuide extends AuthEntityDependent {
     public void setDayAvailability(List<DayOfWeek> days, boolean active) {
         if (active) activeDays.addAll(days);
         else days.forEach(activeDays::remove);
+    }
+
+    public GuideStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(GuideStatus status) {
+        this.status = status;
+    }
+
+    public String[] getLanguages() {
+        return languages;
+    }
+
+    public void setLanguages(String[] languages) {
+        this.languages = languages;
+    }
+
+    public void addRating(Rating rating) {
+        ratings.add(rating);
+    }
+
+    public List<Rating> getRatings(int count) {
+        return ratings.subList(0, Math.min(ratings.size(), count));
+    }
+
+    public int getRatingAvg() {
+        return (int) ratings.stream().mapToInt(Rating::getStarRating)
+                .average()
+                .orElse(0);
     }
 }

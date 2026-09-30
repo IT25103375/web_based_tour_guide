@@ -5,6 +5,7 @@ import com.webbasedtourguide.enums.GuideStatus;
 import com.webbasedtourguide.exceptions.GuideException;
 import com.webbasedtourguide.repositories.TourGuideRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,13 +32,18 @@ public class TourGuideService {
         DayOfWeek tourDay = bookedDate.atZone(ZoneId.systemDefault()).getDayOfWeek();
         int bitmask = 1 << tourDay.ordinal();
 
-        // TODO: Some kind of method to pick most suitable guide; currently picking query first
         List<TourGuide> guides = guideRepository.findAvailableGuides(bitmask);
         if (!guides.isEmpty()) return guides.getFirst();
         else throw new GuideException("No guides available!");
     }
 
+    @Transactional
     public boolean cancelGuideBooking(Integer id) {
         return guideRepository.updateGuideStatus(id, GuideStatus.AVAILABLE) == 1;
+    }
+
+    @Transactional
+    public boolean setGuideBooked(Integer id) {
+        return guideRepository.updateGuideStatus(id, GuideStatus.BOOKED) == 1;
     }
 }

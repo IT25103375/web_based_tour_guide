@@ -1,6 +1,7 @@
 package com.webbasedtourguide.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.webbasedtourguide.abstracts.AuthEntityDependent;
 import com.webbasedtourguide.enums.UserType;
 import jakarta.persistence.*;
 import org.jspecify.annotations.NonNull;
@@ -123,5 +124,19 @@ public class AuthEntity implements UserDetails {
 
     public void setAdmin(Admin admin) {
         this.admin = admin;
+    }
+
+    public AuthEntityDependent getDependent() {
+        AuthEntityDependent dependent =
+                switch (userType) {
+                    case TOURIST -> tourist;
+                    case TOURGUIDE -> tourGuide;
+                    case AGENCYSTAFF, TOURMANAGER -> admin;
+                    default -> throw new RuntimeException("Invalid user");
+        };
+
+        if (dependent != null)
+            return dependent;
+        else throw new RuntimeException("AuthEntity user missing");
     }
 }

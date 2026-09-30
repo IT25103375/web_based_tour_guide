@@ -1,11 +1,13 @@
 package com.webbasedtourguide.entities;
 
 import com.webbasedtourguide.abstracts.AuthEntityDependent;
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 
 @Entity
+@DiscriminatorValue("ADMIN")
 public class Admin extends AuthEntityDependent {
 
     @Id

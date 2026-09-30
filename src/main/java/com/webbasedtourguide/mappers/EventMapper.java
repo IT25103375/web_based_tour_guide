@@ -18,7 +18,7 @@ public interface EventMapper {
     EventDetailsDTO toDto(Event event);
 
 //    @Mapping(target = "offeredDestinations", source = "offeredDestinationIds")
-//    Event toEntity(EventDetailsDTO dto);
+//    EventEntity toEntity(EventDetailsDTO dto);
 
     List<EventDetailsDTO> toDtoList(List<Event> events);
 }
