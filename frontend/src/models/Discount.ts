@@ -1,6 +1,5 @@
 import {DiscountPriceType} from "@/enums/DiscountPriceType.ts";
 import {DiscountTimeType} from "@/enums/DiscountTimeType.ts";
-import {TourPackage} from "@/models/TourPackage.ts";
 
 export interface Discount {
     id: number;
@@ -12,6 +11,7 @@ export interface Discount {
     discountTimeType: DiscountTimeType;
     startDate: string; // ISO instant
     endDate: string; // ISO instant
+    applicablePackagesIds?: number[];
 }
 
 export type DiscountList = Discount[] | null

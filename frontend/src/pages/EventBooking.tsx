@@ -100,7 +100,7 @@ export default function EventBooking() {
         <Layout>
             <Box sx={{ p: { xs: 2, sm: 3 } }}>
                 <Box sx={{ mb: 3 }}>
-                    <Typography variant="h5" sx={{ fontWeight: 700 }}>Book an Event</Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 700 }}>Book an EventEntity</Typography>
                     <Typography variant="body2" color="text.secondary">
                         Select a tour package first to see its available events
                     </Typography>
@@ -155,7 +155,7 @@ export default function EventBooking() {
                             >
                                 <CardContent sx={{ flex: 1, p: 2.5 }}>
                                     <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
-                                        <Chip label="Event" size="small" color="secondary" />
+                                        <Chip label="EventEntity" size="small" color="secondary" />
                                         <Typography variant="h6" sx={{ fontWeight: 700, color: "primary.main" }}>
                                             LKR {ev.price.toLocaleString()}
                                         </Typography>
@@ -177,7 +177,7 @@ export default function EventBooking() {
                                         </Box>
                                     </Box>
                                     <Button variant="contained" size="small" fullWidth onClick={() => setSelectedEvent(ev)}>
-                                        Book Event
+                                        Book EventEntity
                                     </Button>
                                 </CardContent>
                             </Card>
@@ -188,7 +188,7 @@ export default function EventBooking() {
                 {/* Booking confirmation dialog */}
                 <Dialog open={!!selectedEvent} onClose={handleClose} maxWidth="xs" fullWidth>
                     <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        {confirmed ? "Booking Confirmed" : "Confirm Event Booking"}
+                        {confirmed ? "Booking Confirmed" : "Confirm EventEntity Booking"}
                         <IconButton size="small" onClick={handleClose}><Close fontSize="small" /></IconButton>
                     </DialogTitle>
                     <DialogContent dividers>
@@ -221,7 +221,7 @@ export default function EventBooking() {
                         ) : (
                             <Box sx={{ textAlign: "center", py: 3 }}>
                                 <CheckCircle sx={{ fontSize: 64, color: "success.main", mb: 2 }} />
-                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Event Booked!</Typography>
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>EventEntity Booked!</Typography>
                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                                     You're registered for <strong>{selectedEvent?.displayName}</strong> on <strong>{selectedEvent?.date}</strong>.
                                 </Typography>

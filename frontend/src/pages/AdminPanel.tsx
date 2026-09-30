@@ -32,14 +32,17 @@ import { useEffect, useState, type ReactNode } from "react";
 import Layout from "../components/Layout";
 import { tourPackageAPI } from "../services/TourPackageService";
 import { destinationAPI } from "../services/DestinationService";
-import { eventAPI} from "../services/EventService";
-import { discountAPI} from "../services/DiscountService";
-import { userAdminAPI} from "../services/UserAdminService";
+import { eventAPI } from "../services/EventService";
+import { discountAPI } from "../services/DiscountService";
+import { userAdminAPI } from "../services/UserAdminService";
 import { UserType } from "../enums/UserType.ts";
-import {UserPost} from "@/models/User.ts";
+import {UserGet} from "@/models/User.ts";
 import {Discount, DiscountList} from "@/models/Discount.ts";
 import {Destination, DestinationList} from "@/models/Destination.ts";
-import {TourPackageList} from "@/models/TourPackage.ts";
+import {TourPackage, TourPackageList} from "@/models/TourPackage.ts";
+import {EventEntity, EventList} from "../models/EventEntity.ts";
+import type {DiscountPriceType} from "@/enums/DiscountPriceType.ts";
+import type {DiscountTimeType} from "@/enums/DiscountTimeType.ts";
 
 type TabType = "users" | "packages" | "events" | "discounts" | "destinations";
 
@@ -112,38 +115,44 @@ const truncateSx = (maxWidth: number) => ({ maxWidth, overflow: "hidden", textOv
 
 export default function AdminPanel() {
     const [tab, setTab] = useState<TabType>("users");
-    const [users, setUsers] = useState<UserPost[]>([]);
+    const [users, setUsers] = useState<UserGet[]>([]);
     const [packages, setPackages] = useState<TourPackageList>([]);
-    const [events, setEvents] = useState<EvenetList>([]);
+    const [events, setEvents] = useState<EventList>([]);
     const [discounts, setDiscounts] = useState<DiscountList>([]);
     const [destinations, setDestinations] = useState<DestinationList>([]);
     const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string; type: TabType } | null>(null);
     const [editDialog, setEditDialog] = useState<{ open: boolean; type: TabType; record: Record<string, unknown> | null }>({ open: false, type: "users", record: null });
     const [saved, setSaved] = useState(false);
 
-    const [pkgForm, setPkgForm] = useState({ displayName: "", price: "", destinationIds: [] as number[] });
+    const [pkgForm, setPkgForm] = useState({ displayName: "", price: "", duration: "", description: "", capacity: "", destinationIds: [] as number[] });
     const [destForm, setDestForm] = useState({ displayName: "", location: "", description: "" });
     const [userForm, setUserForm] = useState({ username: "", email: "", password: "", userType: UserType.Tourist as string });
-    const [eventForm, setEventForm] = useState({ eventName: "", location: "", price: "", capacity: "", startDate: "", endDate: "", applicablePackages: [] as number[] });
-    const [discountForm, setDiscountForm] = useState({ code: "", percentage: "", minAmount: "", active: true });
+    const [eventForm, setEventForm] = useState({ eventName: "", location: "", description: "", price: "", capacity: "", startDate: "", endDate: "", applicablePackages: [] as number[] });
+    const [discountForm, setDiscountForm] = useState<{
+        couponCode: string;
+        discountPriceType: DiscountPriceType;
+        discountTimeType: DiscountTimeType;
+        percentage: string;
+        fixed: string;
+        minAmount: string;
+        startDate: string;
+        endDate: string;
+        applicablePackages: number[];
+    }>({
+        couponCode: "",
+        discountPriceType: "PERCENTAGE",
+        discountTimeType: "CODE",
+        percentage: "",
+        fixed: "",
+        minAmount: "",
+        startDate: "",
+        endDate: "",
+        applicablePackages: [] as number[]
+    });
 
     const loadPackages = () => {
         tourPackageAPI.getPackages().then((res) => {
-            const data = res?.data;
-            if (Array.isArray(data)) {
-                setPackages(
-                    data.map((pkg: any) => {
-                        const ids: number[] = pkg.offeredDestinationIds ?? [];
-                        return {
-                            id: pkg.id,
-                            name: pkg.displayName,
-                            destination: ids.map((id) => destinations.find((d) => d.id === id)?.displayName ?? "—").join(", ") || "—",
-                            destinationIds: ids,
-                            price: pkg.price,
-                        };
-                    })
-                );
-            }
+            if (Array.isArray(res?.data)) setPackages(res.data);
         });
     };
 
@@ -182,8 +191,13 @@ export default function AdminPanel() {
     // packages once destinations have arrived (and whenever they change).
     useEffect(() => {
         loadPackages();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [destinations]);
 
+    // Single source of truth per entity: how to populate its form from a
+    // record, how to save it (add vs edit), how to delete it, and what to
+    // reload afterward. openEdit / handleSave / handleDelete all just look
+    // this up instead of branching on `type` themselves.
     const entityConfig: Record<TabType, {
         getId: (r: Record<string, unknown>) => number;
         mapToForm: (r: Record<string, unknown> | null) => void;
@@ -193,16 +207,29 @@ export default function AdminPanel() {
     }> = {
         packages: {
             getId: (r) => (r as { id: number }).id,
-            mapToForm: (r) => setPkgForm({
-                displayName: (r as { name?: string })?.name ?? "",
-                price: String((r as { price?: number })?.price ?? ""),
-                destinationIds: (r as { destinationIds?: number[] })?.destinationIds ?? [],
-            }),
+            mapToForm: (r) => {
+                const p = r as Partial<TourPackage> | null;
+                setPkgForm({
+                    displayName: p?.displayName ?? "",
+                    price: String(p?.price ?? ""),
+                    duration: String(p?.duration ?? ""),
+                    description: p?.description ?? "",
+                    capacity: String(p?.capacity ?? ""),
+                    destinationIds: p?.offeredDestinationIds ?? [],
+                });
+            },
             save: (id) => {
-                const price = Number(pkgForm.price) || 0;
+                const payload = {
+                    displayName: pkgForm.displayName,
+                    price: Number(pkgForm.price) || 0,
+                    duration: Number(pkgForm.duration) || 0,
+                    description: pkgForm.description,
+                    capacity: Number(pkgForm.capacity) || 0,
+                    offeredDestinationIds: pkgForm.destinationIds,
+                };
                 return id
-                    ? tourPackageAPI.editPackage(id, pkgForm.displayName, price, pkgForm.destinationIds)
-                    : tourPackageAPI.addPackage(pkgForm.displayName, price, pkgForm.destinationIds);
+                    ? tourPackageAPI.editPackage({ id, ...payload })
+                    : tourPackageAPI.addPackage(payload);
             },
             remove: (id) => tourPackageAPI.deletePackage(id),
             reload: loadPackages,
@@ -210,13 +237,22 @@ export default function AdminPanel() {
         destinations: {
             getId: (r) => (r as { id: number }).id,
             mapToForm: (r) => setDestForm({
-                displayName: (r as { name?: string })?.name ?? "",
+                displayName: (r as { displayName?: string })?.displayName ?? "",
                 location: (r as { location?: string })?.location ?? "",
-                description: (r as { description?: string})?.description ?? "",
+                description: (r as { description?: string })?.description ?? "",
             }),
-            save: (id) => id
-                ? destinationAPI.editDestination(id, destForm.displayName, destForm.location)
-                : destinationAPI.addDestination(destForm.displayName, destForm.location),
+            save: (id) => {
+                const dest: Destination = {
+                    id: id,
+                    displayName: destForm.displayName,
+                    location: destForm.location,
+                    description: destForm.description,
+                    offeredPackageIds: [],
+                };
+                return id
+                    ? destinationAPI.editDestination(dest)
+                    : destinationAPI.addDestination(dest);
+            },
             remove: (id) => destinationAPI.removeDestination(id),
             reload: () => { loadDestinations(); loadPackages(); },
         },
@@ -228,19 +264,28 @@ export default function AdminPanel() {
                 password: "",
                 userType: (r as { userType?: string })?.userType ?? UserType.Tourist,
             }),
-            save: (id) => id
-                ? userAdminAPI.updateUserRole(id, userForm.userType as any)
-                : userAdminAPI.addUser(userForm.username, userForm.email, userForm.password, userForm.userType as any),
+            save: (id) => {
+                const user = {
+                    username: userForm.username,
+                    email: userForm.email,
+                    password: userForm.password,
+                    userType: userForm.userType as any,
+                };
+                return id
+                    ? userAdminAPI.updateUserRole(id, userForm.userType as any)
+                    : userAdminAPI.addUser(user);
+            },
             remove: (id) => userAdminAPI.deleteUser(id),
             reload: loadUsers,
         },
         events: {
             getId: (r) => (r as { eventId: number }).eventId,
             mapToForm: (r) => {
-                const e = r as Partial<EventAdmin> | null;
+                const e = r as Partial<EventEntity> | null;
                 setEventForm({
                     eventName: e?.eventName ?? "",
                     location: e?.location ?? "",
+                    description: e?.description ?? "",
                     price: String(e?.price ?? ""),
                     capacity: String(e?.capacity ?? ""),
                     startDate: e?.startDate ? e.startDate.slice(0, 10) : "",
@@ -252,8 +297,9 @@ export default function AdminPanel() {
                 const payload = {
                     eventName: eventForm.eventName,
                     location: eventForm.location,
-                    price: Number(eventForm.price) || 0,
+                    description: eventForm.description,
                     capacity: Number(eventForm.capacity) || 0,
+                    price: Number(eventForm.price) || 0,
                     startDate: eventForm.startDate ? new Date(eventForm.startDate).toISOString() : new Date().toISOString(),
                     endDate: eventForm.endDate ? new Date(eventForm.endDate).toISOString() : new Date().toISOString(),
                     applicablePackages: eventForm.applicablePackages,
@@ -266,20 +312,33 @@ export default function AdminPanel() {
         discounts: {
             getId: (r) => (r as { id: number }).id,
             mapToForm: (r) => {
-                const d = r as Partial<DiscountAdmin> | null;
+                const d = r as Partial<Discount> | null;
                 setDiscountForm({
-                    code: d?.code ?? "",
+                    couponCode: d?.couponCode ?? "",
+                    discountPriceType: d?.discountPriceType ?? "PERCENTAGE",
+                    discountTimeType: d?.discountTimeType ?? "CODE",
                     percentage: String(d?.percentage ?? ""),
+                    fixed: String(d?.fixed ?? ""),
                     minAmount: String(d?.minAmount ?? ""),
-                    active: d?.active ?? true,
+                    startDate: d?.startDate ? d.startDate.slice(0, 10) : "",
+                    endDate: d?.endDate ? d.endDate.slice(0, 10) : "",
+                    applicablePackages: d?.applicablePackagesIds ?? [],
                 });
             },
             save: (id) => {
-                const percentage = Number(discountForm.percentage) || 0;
-                const minAmount = Number(discountForm.minAmount) || 0;
+                const payload = {
+                    couponCode: discountForm.couponCode || undefined,
+                    percentage: discountForm.discountPriceType === "PERCENTAGE" ? Number(discountForm.percentage) || 0 : undefined,
+                    fixed: discountForm.discountPriceType === "FIXED" ? Number(discountForm.fixed) || 0 : undefined,
+                    minAmount: Number(discountForm.minAmount) || 0,
+                    discountPriceType: discountForm.discountPriceType,
+                    discountTimeType: discountForm.discountTimeType,
+                    startDate: discountForm.startDate ? new Date(discountForm.startDate).toISOString() : new Date().toISOString(),
+                    endDate: discountForm.endDate ? new Date(discountForm.endDate).toISOString() : new Date().toISOString(),
+                };
                 return id
-                    ? discountAPI.editDiscount(id, discountForm.code, percentage, minAmount, discountForm.active)
-                    : discountAPI.addDiscount(discountForm.code, percentage, minAmount, discountForm.active);
+                    ? discountAPI.editDiscount({ id, ...payload })
+                    : discountAPI.addDiscount(payload);
             },
             remove: (id) => discountAPI.deleteDiscount(id),
             reload: loadDiscounts,
@@ -313,24 +372,29 @@ export default function AdminPanel() {
     };
 
     const getPackageNames = (ids: number[]) =>
-        ids.map((id) => packages.find((p) => p.id === id)?.name).filter(Boolean).join(", ") || "-";
+        ids.map((id) => packages?.find((p) => p.id === id)?.displayName).filter(Boolean).join(", ") || "-";
+
+    const getDestinationNames = (ids: number[] | null) =>
+        (ids ?? []).map((id) => destinations?.find((d) => d.id === id)?.displayName).filter(Boolean).join(", ") || "—";
 
     // Column definitions per tab. Rendering logic (chips, truncation, joined
-    // names, formatting) matches the original cells exactly; only the
-    // surrounding table/head/hover/actions markup is now shared.
-    const usersColumns: ColumnDef<UserPost>[] = [
+    // names, formatting) matches the real model fields; only the surrounding
+    // table/head/hover/actions markup is shared via AdminTable.
+    const usersColumns: ColumnDef<UserGet>[] = [
         { header: "Username", render: (u) => u.username },
         { header: "Email", render: (u) => u.email },
         { header: "Role", render: (u) => <Chip label={u.userType} size="small" color={u.userType === UserType.AgencyStaff || u.userType === UserType.TourManager ? "primary" : "default"} /> },
     ];
 
-    const packagesColumns: ColumnDef<AdminPackage>[] = [
-        { header: "Name", cellSx: truncateSx(180), render: (p) => p.name },
-        { header: "Destinations", cellSx: truncateSx(220), render: (p) => p.destination },
+    const packagesColumns: ColumnDef<TourPackage>[] = [
+        { header: "Name", cellSx: truncateSx(160), render: (p) => p.displayName },
+        { header: "Destinations", cellSx: truncateSx(200), render: (p) => getDestinationNames(p.offeredDestinationIds) },
+        { header: "Duration", render: (p) => `${p.duration}d` },
         { header: "Price (LKR)", render: (p) => p.price.toLocaleString() },
+        { header: "Capacity", render: (p) => p.capacity },
     ];
 
-    const eventsColumns: ColumnDef<EventAdmin>[] = [
+    const eventsColumns: ColumnDef<EventEntity>[] = [
         { header: "Name", render: (e) => e.eventName },
         { header: "Packages", cellSx: truncateSx(160), render: (e) => getPackageNames(e.applicablePackages) },
         { header: "Start", render: (e) => e.startDate ? e.startDate.slice(0, 10) : "-" },
@@ -338,17 +402,18 @@ export default function AdminPanel() {
         { header: "Capacity", render: (e) => e.capacity },
     ];
 
-    const discountsColumns: ColumnDef<DiscountAdmin>[] = [
-        { header: "Code", render: (d) => <code style={{ background: "#F0EBE1", padding: "2px 6px", borderRadius: 4 }}>{d.code}</code> },
-        { header: "Discount", render: (d) => `${d.percentage}%` },
+    const discountsColumns: ColumnDef<Discount>[] = [
+        { header: "Code", render: (d) => d.couponCode ? <code style={{ background: "#F0EBE1", padding: "2px 6px", borderRadius: 4 }}>{d.couponCode}</code> : "—" },
+        { header: "Value", render: (d) => d.discountPriceType === "FIXED" ? `LKR ${(d.fixed ?? 0).toLocaleString()}` : `${d.percentage ?? 0}%` },
         { header: "Min Amount", render: (d) => `LKR ${d.minAmount?.toLocaleString()}` },
-        { header: "Status", render: (d) => <Chip label={d.active ? "Active" : "Inactive"} size="small" color={d.active ? "success" : "default"} /> },
+        { header: "Applies Via", render: (d) => <Chip label={d.discountTimeType} size="small" color={d.discountTimeType === "TIMED" ? "primary" : "default"} /> },
+        { header: "Window", render: (d) => `${d.startDate?.slice(0, 10)} → ${d.endDate?.slice(0, 10)}` },
     ];
 
-    const destinationsColumns: ColumnDef<AdminDestination>[] = [
-        { header: "Name", cellSx: { fontWeight: 600 }, render: (d) => d.name },
+    const destinationsColumns: ColumnDef<Destination>[] = [
+        { header: "Name", cellSx: { fontWeight: 600 }, render: (d) => d.displayName },
         { header: "Location", render: (d) => d.location },
-        { header: "Description", render: (d) => d.description },
+        { header: "Description", cellSx: truncateSx(240), render: (d) => d.description },
     ];
 
     return (
@@ -393,37 +458,37 @@ export default function AdminPanel() {
                             {tab === "packages" && (
                                 <AdminTable
                                     columns={packagesColumns}
-                                    rows={packages}
-                                    rowKey={(p) => p.id}
+                                    rows={packages ?? []}
+                                    rowKey={(p) => p.id as number}
                                     onEdit={(p) => openEdit("packages", p as unknown as Record<string, unknown>)}
-                                    onDelete={(p) => setDeleteTarget({ id: p.id, name: p.name, type: "packages" })}
+                                    onDelete={(p) => setDeleteTarget({ id: p.id as number, name: p.displayName, type: "packages" })}
                                 />
                             )}
                             {tab === "events" && (
                                 <AdminTable
                                     columns={eventsColumns}
-                                    rows={events}
-                                    rowKey={(e) => e.eventId}
+                                    rows={events ?? []}
+                                    rowKey={(e) => e.eventId as number}
                                     onEdit={(e) => openEdit("events", e as unknown as Record<string, unknown>)}
-                                    onDelete={(e) => setDeleteTarget({ id: e.eventId, name: e.eventName, type: "events" })}
+                                    onDelete={(e) => setDeleteTarget({ id: e.eventId as number, name: e.eventName, type: "events" })}
                                 />
                             )}
                             {tab === "discounts" && (
                                 <AdminTable
                                     columns={discountsColumns}
-                                    rows={discounts}
+                                    rows={discounts ?? []}
                                     rowKey={(d) => d.id}
                                     onEdit={(d) => openEdit("discounts", d as unknown as Record<string, unknown>)}
-                                    onDelete={(d) => setDeleteTarget({ id: d.id, name: d.code, type: "discounts" })}
+                                    onDelete={(d) => setDeleteTarget({ id: d.id, name: d.couponCode || `Discount #${d.id}`, type: "discounts" })}
                                 />
                             )}
                             {tab === "destinations" && (
                                 <AdminTable
                                     columns={destinationsColumns}
-                                    rows={destinations}
-                                    rowKey={(d) => d.id}
+                                    rows={destinations ?? []}
+                                    rowKey={(d) => d.id as number}
                                     onEdit={(d) => openEdit("destinations", d as unknown as Record<string, unknown>)}
-                                    onDelete={(d) => setDeleteTarget({ id: d.id, name: d.name, type: "destinations" })}
+                                    onDelete={(d) => setDeleteTarget({ id: d.id as number, name: d.displayName, type: "destinations" })}
                                 />
                             )}
                         </TableContainer>
@@ -504,12 +569,12 @@ export default function AdminPanel() {
                                             }}
                                             input={<OutlinedInput label="Destinations" />}
                                             renderValue={(selected) => (selected as number[])
-                                                .map((id) => destinations.find((d) => d.id === id)?.name)
+                                                .map((id) => destinations?.find((d) => d.id === id)?.displayName)
                                                 .filter(Boolean)
                                                 .join(", ")}
                                         >
-                                            {destinations.map((d) => (
-                                                <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
+                                            {destinations?.map((d) => (
+                                                <MenuItem key={d.id} value={d.id}>{d.displayName}</MenuItem>
                                             ))}
                                         </Select>
                                     </FormControl>
@@ -521,12 +586,38 @@ export default function AdminPanel() {
                                         size="small"
                                         fullWidth
                                     />
+                                    <TextField
+                                        label="Duration (days)"
+                                        type="number"
+                                        value={pkgForm.duration}
+                                        onChange={(e) => setPkgForm({ ...pkgForm, duration: e.target.value })}
+                                        size="small"
+                                        fullWidth
+                                    />
+                                    <TextField
+                                        label="Capacity"
+                                        type="number"
+                                        value={pkgForm.capacity}
+                                        onChange={(e) => setPkgForm({ ...pkgForm, capacity: e.target.value })}
+                                        size="small"
+                                        fullWidth
+                                    />
+                                    <TextField
+                                        label="Description"
+                                        value={pkgForm.description}
+                                        onChange={(e) => setPkgForm({ ...pkgForm, description: e.target.value })}
+                                        size="small"
+                                        fullWidth
+                                        multiline
+                                        minRows={2}
+                                    />
                                 </>
                             )}
                             {editDialog.type === "events" && (
                                 <>
                                     <TextField label="Event Name" value={eventForm.eventName} onChange={(e) => setEventForm({ ...eventForm, eventName: e.target.value })} size="small" fullWidth />
                                     <TextField label="Location" value={eventForm.location} onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })} size="small" fullWidth />
+                                    <TextField label="Description" value={eventForm.description} onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })} size="small" fullWidth multiline minRows={2} />
                                     <FormControl size="small" fullWidth>
                                         <InputLabel>Tour Packages</InputLabel>
                                         <Select
@@ -539,11 +630,11 @@ export default function AdminPanel() {
                                             }}
                                             input={<OutlinedInput label="Tour Packages" />}
                                             renderValue={(selected) => (selected as number[])
-                                                .map((id) => packages.find((p) => p.id === id)?.name)
+                                                .map((id) => packages?.find((p) => p.id === id)?.displayName)
                                                 .filter(Boolean)
                                                 .join(", ")}
                                         >
-                                            {packages.map((p) => <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>)}
+                                            {packages?.map((p) => <MenuItem key={p.id} value={p.id}>{p.displayName}</MenuItem>)}
                                         </Select>
                                     </FormControl>
                                     <TextField label="Start Date" type="date" value={eventForm.startDate} onChange={(e) => setEventForm({ ...eventForm, startDate: e.target.value })} size="small" fullWidth slotProps={{ inputLabel: { shrink: true } }} />
@@ -554,35 +645,65 @@ export default function AdminPanel() {
                             )}
                             {editDialog.type === "discounts" && (
                                 <>
-                                    <TextField
-                                        label="Coupon Code"
-                                        value={discountForm.code}
-                                        onChange={(e) => setDiscountForm({ ...discountForm, code: e.target.value.toUpperCase() })}
-                                        size="small"
-                                        fullWidth
-                                        slotProps={{ htmlInput: { style: { textTransform: "uppercase" } } }}
-                                    />
-                                    <TextField
-                                        label="Discount %"
-                                        type="number"
-                                        value={discountForm.percentage}
-                                        onChange={(e) => setDiscountForm({ ...discountForm, percentage: e.target.value })}
-                                        size="small"
-                                        fullWidth
-                                        slotProps={{ htmlInput: { min: 1, max: 100 } }}
-                                    />
-                                    <TextField label="Minimum Amount (LKR)" type="number" value={discountForm.minAmount} onChange={(e) => setDiscountForm({ ...discountForm, minAmount: e.target.value })} size="small" fullWidth />
                                     <FormControl size="small" fullWidth>
-                                        <InputLabel>Status</InputLabel>
+                                        <InputLabel>Discount Type</InputLabel>
                                         <Select
-                                            label="Status"
-                                            value={discountForm.active ? "active" : "inactive"}
-                                            onChange={(e) => setDiscountForm({ ...discountForm, active: e.target.value === "active" })}
+                                            label="Discount Type"
+                                            value={discountForm.discountPriceType}
+                                            onChange={(e) => setDiscountForm({ ...discountForm, discountPriceType: e.target.value as DiscountPriceType })}
                                         >
-                                            <MenuItem value="active">Active</MenuItem>
-                                            <MenuItem value="inactive">Inactive</MenuItem>
+                                            <MenuItem value="PERCENTAGE">Percentage</MenuItem>
+                                            <MenuItem value="FIXED">Fixed Amount</MenuItem>
                                         </Select>
                                     </FormControl>
+                                    {discountForm.discountPriceType === "FIXED" ? (
+                                        <TextField label="Fixed Amount (LKR)" type="number" value={discountForm.fixed} onChange={(e) => setDiscountForm({ ...discountForm, fixed: e.target.value })} size="small" fullWidth />
+                                    ) : (
+                                        <TextField label="Discount %" type="number" value={discountForm.percentage} onChange={(e) => setDiscountForm({ ...discountForm, percentage: e.target.value })} size="small" fullWidth slotProps={{ htmlInput: { min: 1, max: 100 } }} />
+                                    )}
+                                    <TextField label="Minimum Amount (LKR)" type="number" value={discountForm.minAmount} onChange={(e) => setDiscountForm({ ...discountForm, minAmount: e.target.value })} size="small" fullWidth />
+                                    <FormControl size="small" fullWidth>
+                                        <InputLabel>Applies Via</InputLabel>
+                                        <Select
+                                            label="Applies Via"
+                                            value={discountForm.discountTimeType}
+                                            onChange={(e) => setDiscountForm({ ...discountForm, discountTimeType: e.target.value as DiscountTimeType })}
+                                        >
+                                            <MenuItem value="CODE">Coupon Code</MenuItem>
+                                            <MenuItem value="TIMED">Timed Window</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                    {discountForm.discountTimeType == "CODE" && (
+                                        <TextField
+                                            label="Coupon Code"
+                                            value={discountForm.couponCode}
+                                            onChange={(e) => setDiscountForm({ ...discountForm, couponCode: e.target.value.toUpperCase() })}
+                                            size="small"
+                                            fullWidth
+                                            slotProps={{ htmlInput: { style: { textTransform: "uppercase" } } }}
+                                        />
+                                    )}
+                                    <FormControl size="small" fullWidth>
+                                        <InputLabel>Tour Packages</InputLabel>
+                                        <Select
+                                            multiple
+                                            label="Tour Packages"
+                                            value={discountForm.applicablePackages}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                setDiscountForm({ ...discountForm, applicablePackages: typeof value === "string" ? [] : (value as number[]) });
+                                            }}
+                                            input={<OutlinedInput label="Tour Packages" />}
+                                            renderValue={(selected) => (selected as number[])
+                                                .map((id) => packages?.find((p) => p.id === id)?.displayName)
+                                                .filter(Boolean)
+                                                .join(", ")}
+                                        >
+                                            {packages?.map((p) => <MenuItem key={p.id} value={p.id}>{p.displayName}</MenuItem>)}
+                                        </Select>
+                                    </FormControl>
+                                    <TextField label="Start Date" type="date" value={discountForm.startDate} onChange={(e) => setDiscountForm({ ...discountForm, startDate: e.target.value })} size="small" fullWidth slotProps={{ inputLabel: { shrink: true } }} />
+                                    <TextField label="End Date" type="date" value={discountForm.endDate} onChange={(e) => setDiscountForm({ ...discountForm, endDate: e.target.value })} size="small" fullWidth slotProps={{ inputLabel: { shrink: true } }} />
                                 </>
                             )}
                             {editDialog.type === "destinations" && (
@@ -607,6 +728,8 @@ export default function AdminPanel() {
                                         onChange={(e) => setDestForm({ ...destForm, description: e.target.value })}
                                         size="small"
                                         fullWidth
+                                        multiline
+                                        minRows={2}
                                     />
                                 </>
                             )}

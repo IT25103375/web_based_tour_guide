@@ -1,11 +1,14 @@
 import type {UserType} from "../enums/UserType.ts";
 
+// Matches the backend's UserAdminDTO (GET /api/user) used by the admin panel's Users tab.
 export type UserGet = {
+    id: number;
     username: string;
-    ID : number;
+    email: string;
+    userType: UserType;
 }
-//TODO: Remove username and password fields, get email from auth object
 
+//TODO: Remove username and password fields, get email from auth object
 export type UserPost = {
     username : string;
     email : string;

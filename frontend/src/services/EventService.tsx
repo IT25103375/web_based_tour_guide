@@ -1,6 +1,6 @@
 import axios from "axios";
 import { handleError } from "../helpers/ErrorHandler";
-import {Event, EventList} from "../models/Event.ts";
+import {EventEntity, EventList} from "../models/EventEntity.ts";
 
 const api = "http://localhost:8090/";
 
@@ -8,13 +8,13 @@ export const eventAPI = {
 
     getAllEventsAdmin: async () => {
         try {
-            return await axios.get<EventList[]>(api + "api/event/admin");
+            return await axios.get<EventList>(api + "api/event/admin");
         } catch (error) {
             handleError(error);
         }
     },
 
-    addEvent: async (event: Omit<Event, "eventId">) => {
+    addEvent: async (event: Omit<EventEntity, "eventId">) => {
         try {
             return await axios.post<string>(api + "api/event/admin", event);
         } catch (error) {
@@ -22,7 +22,7 @@ export const eventAPI = {
         }
     },
 
-    editEvent: async (event: Event) => {
+    editEvent: async (event: EventEntity) => {
         try {
             return await axios.put<string>(api + "api/event/admin", event);
         } catch (error) {

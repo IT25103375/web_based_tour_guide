@@ -9,7 +9,7 @@ const api = "http://localhost:8090/";
 export const discountAPI = {
     getDiscounts: async () => {
         try {
-            return await axios.get<DiscountList[]>(api + "api/discount");
+            return await axios.get<DiscountList>(api + "api/discount");
         } catch (error) {
             handleError(error);
         }

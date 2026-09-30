@@ -1,7 +1,5 @@
-import {TourPackage} from "@/models/TourPackage.ts";
-
 export interface Destination {
-    id: number;
+    id: number | undefined;
     displayName: string;
     location: string;
     description: string;

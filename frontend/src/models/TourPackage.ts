@@ -1,12 +1,11 @@
 export interface TourPackage {
-    id: number;
+    id: number | undefined;
     displayName: string;
     price: number;
     duration: number;
     description: string;
     capacity: number;
-    offeredDestinationNames: string[];
-    offeredDestinationIds: number[];
+    offeredDestinationIds: number[] | null;
 }
 
 export type TourPackageList = TourPackage[] | null

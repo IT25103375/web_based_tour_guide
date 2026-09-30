@@ -1,8 +1,6 @@
-import {TourPackage} from "@/models/TourPackage.ts";
-
-export interface Event {
-    id: number;
-    displayName: string;
+export interface EventEntity {
+    eventId: number | undefined;
+    eventName: string;
     location: string;
     description: string;
     capacity: number;
@@ -12,4 +10,4 @@ export interface Event {
     applicablePackages: number[];
 }
 
-export type EventList = Event[] | null
+export type EventList = EventEntity[] | null
