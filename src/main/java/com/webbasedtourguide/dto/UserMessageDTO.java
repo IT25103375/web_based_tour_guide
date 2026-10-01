@@ -17,6 +17,14 @@ public class UserMessageDTO {
         this.id = id;
     }
 
+    public Instant getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Instant timestamp) {
+        this.timestamp = timestamp;
+    }
+
     public String getSender() {
         return sender;
     }

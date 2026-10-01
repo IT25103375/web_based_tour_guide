@@ -103,7 +103,7 @@ public class DestinationService {
         return dest.getRatings(count);
     }
 
-    public int getRatingAvg(int dest_id) {
+    public double getRatingAvg(int dest_id) {
         Destination dest = destinationRepository.findById(dest_id)
                 .orElseThrow(() -> new EntityNotFoundException("Destination not found"));
 

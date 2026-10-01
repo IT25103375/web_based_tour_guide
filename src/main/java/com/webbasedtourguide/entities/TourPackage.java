@@ -109,7 +109,7 @@ public class TourPackage {
         return ratings.subList(0, Math.min(ratings.size(), count));
     }
 
-    public int getRatingAvg() {
+    public double getRatingAvg() {
         return (int) ratings.stream().mapToInt(Rating::getStarRating)
                 .average()
                 .orElse(0);

@@ -30,6 +30,9 @@ public class Event {
     private Integer capacity;
     private String description;
 
+    @OneToMany
+    private List<Rating> ratings;
+
     public Integer getCapacity() {
         return capacity;
     }
@@ -100,5 +103,19 @@ public class Event {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public void addRating(Rating rating) {
+        ratings.add(rating);
+    }
+
+    public List<Rating> getRatings(int count) {
+        return ratings.subList(0, Math.min(ratings.size(), count));
+    }
+
+    public double getRatingAvg() {
+        return ratings.stream().mapToInt(Rating::getStarRating)
+                .average()
+                .orElse(0);
     }
 }

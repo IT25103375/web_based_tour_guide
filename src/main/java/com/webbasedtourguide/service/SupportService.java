@@ -6,6 +6,7 @@ import com.webbasedtourguide.dto.UserMessageDTO;
 import com.webbasedtourguide.entities.Rating;
 import com.webbasedtourguide.entities.Ticket;
 import com.webbasedtourguide.entities.UserMessage;
+import com.webbasedtourguide.enums.RatingType;
 import com.webbasedtourguide.exceptions.UserException;
 import com.webbasedtourguide.mappers.ServiceMapper;
 import com.webbasedtourguide.repositories.RatingRepository;
@@ -27,10 +28,11 @@ public class SupportService {
     private final TourPackageService tourPackageService;
     private final TourGuideService tourGuideService;
     private final DestinationService destinationService;
+    private final EventService eventService;
 
     SupportService(ServiceMapper serviceMapper, TicketRepository ticketRepository, RatingRepository ratingRepository,
                    UserService userService, TourPackageService tourPackageService,
-                   TourGuideService tourGuideService, DestinationService destinationService) {
+                   TourGuideService tourGuideService, DestinationService destinationService, EventService eventService) {
         this.serviceMapper = serviceMapper;
         this.ticketRepository = ticketRepository;
         this.ratingRepository = ratingRepository;
@@ -38,16 +40,17 @@ public class SupportService {
         this.tourPackageService = tourPackageService;
         this.tourGuideService = tourGuideService;
         this.destinationService = destinationService;
+        this.eventService = eventService;
     }
 
     @Transactional
-    public void createTicket(TicketDTO request) {
+    public TicketDTO createTicket(TicketDTO request) {
 
         Ticket ticket = new Ticket();
         ticket.setTitle(request.getTitle());
         ticket.addMessage(new UserMessage(userService.getCurrentUser(), request.getMessages().getFirst().getContent()));
 
-        ticketRepository.save(ticket);
+        return serviceMapper.toDto(ticketRepository.save(ticket));
     }
 
     @Transactional
@@ -60,17 +63,20 @@ public class SupportService {
         ticketRepository.save(ticket);
     }
 
+    @Transactional
     public List<TicketDTO> getTickets() {
         return ticketRepository.getTicketsSubscribedTo(userService.getCurrentUser().getId()).
                 stream().map(ticket -> {
                     TicketDTO dto = new TicketDTO();
                     dto.setId(Math.toIntExact(ticket.getId()));
                     dto.setTitle(ticket.getTitle());
+                    dto.setStatus(ticket.getStatus());
                     dto.addMessage(serviceMapper.toDto(ticket.getFirstMessage()));
                     return dto;
                 }).collect(Collectors.toList());
     }
 
+    @Transactional
     public TicketDTO getTicket(int id) {
         Ticket ticket = ticketRepository.findById((long) id)
                 .orElseThrow(() -> new EntityNotFoundException("Ticket not found"));
@@ -101,16 +107,31 @@ public class SupportService {
         ratingRepository.save(rating);
 
         switch (rating.getType()) {
-            case TOURPACKAGE -> {
-                tourPackageService.addRating(Math.toIntExact(rating.getId()), rating);
-            }
-            case TOURGUIDE -> {
-                tourGuideService.addRating(Math.toIntExact(rating.getId()), rating);
-            }
-            case DESTINATION -> {
-                destinationService.addRating(Math.toIntExact(rating.getId()), rating);
-            }
+            case TOURPACKAGE -> tourPackageService.addRating(request.getTypeId(), rating);
+            case TOURGUIDE -> tourGuideService.addRating(request.getTypeId(), rating);
+            case DESTINATION -> destinationService.addRating(request.getTypeId(), rating);
+            case EVENT -> eventService.addRating(request.getTypeId(), rating);
             default -> throw new RuntimeException("Invalid rating type");
         }
+    }
+
+    @Transactional
+    public List<RatingDTO> getRatings(RatingType type, int typeId) {
+
+        List<Rating> ratings = switch (type) {
+            case TOURPACKAGE -> tourPackageService.getRatings(typeId, Integer.MAX_VALUE);
+            case TOURGUIDE -> tourGuideService.getRatings(typeId, Integer.MAX_VALUE);
+            case DESTINATION -> destinationService.getRatings(typeId, Integer.MAX_VALUE);
+            case EVENT -> eventService.getRatings(typeId, Integer.MAX_VALUE);
+        };
+
+        return ratings.stream().map(rating -> {
+            RatingDTO dto = new RatingDTO();
+            dto.setRating(rating.getStarRating());
+            dto.setMessage(rating.getContent());
+            dto.setType(type);
+            dto.setTypeId(typeId);
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

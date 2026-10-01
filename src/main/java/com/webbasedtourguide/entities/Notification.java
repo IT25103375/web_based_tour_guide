@@ -23,6 +23,7 @@ public class Notification {
     public Notification(String title, String message) {
         this.title = title;
         this.message = message;
+        this.timestamp = Instant.now();
     }
 
     public Long getId() {

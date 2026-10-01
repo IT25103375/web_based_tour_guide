@@ -2,6 +2,7 @@ package com.webbasedtourguide.controllers;
 
 import com.webbasedtourguide.dto.RatingDTO;
 import com.webbasedtourguide.dto.TicketDTO;
+import com.webbasedtourguide.enums.RatingType;
 import com.webbasedtourguide.service.SupportService;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,12 +20,12 @@ class SupportController {
     }
 
     @PostMapping("/ticket")
-    public void createTicket(TicketDTO request) {
-        supportService.createTicket(request);
+    public TicketDTO createTicket(@RequestBody TicketDTO request) {
+        return supportService.createTicket(request);
     }
 
     @PatchMapping("/ticket/{id}")
-    public void respondToTicket(@PathVariable int id, TicketDTO request) {
+    public void respondToTicket(@PathVariable int id, @RequestBody TicketDTO request) {
         supportService.respondToTicket(id, request);
     }
 
@@ -44,7 +45,12 @@ class SupportController {
     }
 
     @PostMapping("/rating")
-    public void postRating(RatingDTO request) {
+    public void postRating(@RequestBody RatingDTO request) {
         supportService.postRating(request);
+    }
+
+    @GetMapping("/rating")
+    public List<RatingDTO> getRatings(@RequestParam RatingType type, @RequestParam int typeId) {
+        return supportService.getRatings(type, typeId);
     }
 }

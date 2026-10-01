@@ -142,15 +142,6 @@ export default function Register() {
                 </Typography>
               </Typography>
             </Box>
-
-            <Box sx={{ mt: 2, p: 1.5, bgcolor: "#F7F4EF", borderRadius: 2 }}>
-              <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5, fontWeight: 600 }}>
-                Demo credentials
-              </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-                Email: kasun@example.com &nbsp;|&nbsp; Password: any
-              </Typography>
-            </Box>
           </CardContent>
         </Card>
       </Box>

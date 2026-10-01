@@ -3,6 +3,7 @@ package com.webbasedtourguide.dto;
 import com.webbasedtourguide.entities.UserMessage;
 import com.webbasedtourguide.enums.TicketStatus;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TicketDTO {
@@ -10,7 +11,7 @@ public class TicketDTO {
     private int id;
     private String title;
     private TicketStatus status;
-    private List<UserMessageDTO> messages;
+    private List<UserMessageDTO> messages = new ArrayList<>();
 
     public String getTitle() {
         return title;
@@ -25,7 +26,7 @@ public class TicketDTO {
     }
 
     public void setId(int id) {
-        id = id;
+        this.id = id;
     }
 
     public TicketStatus getStatus() {

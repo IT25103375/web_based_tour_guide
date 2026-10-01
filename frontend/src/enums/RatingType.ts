@@ -1,0 +1,1 @@
+export type RatingType = "TOURPACKAGE" | "TOURGUIDE" | "DESTINATION" | "EVENT";

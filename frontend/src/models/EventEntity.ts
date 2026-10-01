@@ -1,5 +1,5 @@
 export interface EventEntity {
-    eventId: number | undefined;
+    eventId: number;
     eventName: string;
     location: string;
     description: string;
@@ -7,6 +7,7 @@ export interface EventEntity {
     price: number;
     startDate: string; // ISO instant
     endDate: string; // ISO instant
+    avgRating: number;
     applicablePackages: number[];
 }
 

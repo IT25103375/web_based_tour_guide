@@ -25,6 +25,8 @@ import { eventAPI } from "../services/EventService";
 import {bookingAPI} from "@/services/BookingService.tsx";
 import {Booking} from "@/models/Booking.ts";
 import {BookingStatus} from "@/enums/BookingStatus.ts";
+import RatingSection from "@/components/RatingSection.tsx";
+import AverageRating from "@/components/AverageRating.tsx";
 
 interface EventItem {
     id: number;
@@ -34,6 +36,7 @@ interface EventItem {
     price: number;
     capacity: number;
     date: any;
+    rating?: number;
 }
 
 export default function EventBooking() {
@@ -55,13 +58,14 @@ export default function EventBooking() {
             if (Array.isArray(data) && data.length > 0) {
                 setFilteredEvents(
                     data.map((ev) => ({
-                        id: ev.id,
+                        id: ev.eventId,
                         packageId: selectedPackageId,
-                        displayName: ev.displayName,
+                        displayName: ev.eventName,
                         description: ev.description,
                         price: ev.price,
                         date: ev.startDate.toString() + " - " + ev.endDate.toString(),
                         capacity: ev.capacity,
+                        rating: ev.avgRating,
                     }))
                 );
             }
@@ -161,6 +165,7 @@ export default function EventBooking() {
                                         </Typography>
                                     </Box>
                                     <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>{ev.displayName}</Typography>
+                                    <Box sx={{ mb: 1 }}><AverageRating value={ev.rating} /></Box>
                                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: "0.82rem" }}>
                                         {ev.description}
                                     </Typography>
@@ -186,7 +191,7 @@ export default function EventBooking() {
                 </Grid>
 
                 {/* Booking confirmation dialog */}
-                <Dialog open={!!selectedEvent} onClose={handleClose} maxWidth="xs" fullWidth>
+                <Dialog open={!!selectedEvent} onClose={handleClose} maxWidth="sm" fullWidth>
                     <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         {confirmed ? "Booking Confirmed" : "Confirm EventEntity Booking"}
                         <IconButton size="small" onClick={handleClose}><Close fontSize="small" /></IconButton>
@@ -228,6 +233,7 @@ export default function EventBooking() {
                                 <Chip label={`Ref #EV-${String(Date.now()).slice(-5)}`} color="primary" />
                             </Box>
                         )}
+                        {selectedEvent && <RatingSection type="EVENT" typeId={selectedEvent.id} />}
                     </DialogContent>
                     <DialogActions sx={{ px: 3, pb: 2 }}>
                         <Button onClick={handleClose} color="inherit">{confirmed ? "Close" : "Cancel"}</Button>
@@ -236,7 +242,7 @@ export default function EventBooking() {
                                 variant="contained"
                                 onClick={() => {
                                     if (selectedEvent) {
-                                        eventAPI.registerEvent(selectedEvent.id, selectedEvent.packageId, selectedEvent.description);
+                                        eventAPI.registerEvent(selectedEvent.id, selectedEvent.packageId);
                                     }
                                     setConfirmed(true);
                                 }}

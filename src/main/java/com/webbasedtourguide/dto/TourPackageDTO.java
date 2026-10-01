@@ -17,7 +17,7 @@ public class TourPackageDTO {
     private int duration;
     private String description;
     private int capacity;
-    private int avgRating;
+    private double avgRating;
 
     private List<String> offeredDestinationNames;
     private List<Integer> offeredDestinationIds;
@@ -86,11 +86,11 @@ public class TourPackageDTO {
         this.offeredDestinationNames = offeredDestinationNames;
     }
 
-    public int getAvgRating() {
+    public double getAvgRating() {
         return avgRating;
     }
 
-    public void setAvgRating(int avgRating) {
+    public void setAvgRating(double avgRating) {
         this.avgRating = avgRating;
     }
 }

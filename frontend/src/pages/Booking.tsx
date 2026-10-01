@@ -19,6 +19,7 @@ import {
 import { Close, CheckCircle, LocalOffer } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
+import AverageRating from "../components/AverageRating";
 import { tourPackageAPI } from "../services/TourPackageService";
 import { bookingAPI } from "../services/BookingService";
 import {TourPackage} from "@/models/TourPackage.ts";
@@ -32,7 +33,7 @@ export interface Package {
   description: string;
   image: string;
   maxCapacity: number;
-  available: boolean;
+  rating: number;
 }
 
 export default function Booking() {
@@ -51,13 +52,13 @@ export default function Booking() {
             data.map((pkg: TourPackage, i: number) => ({
               id: pkg.id,
               name: pkg.displayName,
-              destination: pkg.offeredDestinationNames.join(", "),
+              destination: pkg.offeredDestinationNames ? pkg.offeredDestinationNames.join(", ") : "",
               price: pkg.price,
               duration: pkg.duration.toString(),
               description: pkg.description,
               image: "",
               maxCapacity: pkg.capacity,
-              available: true,
+              rating: pkg.avgRating,
             }))
         );
       }
@@ -113,7 +114,7 @@ export default function Booking() {
                         flexDirection: "column",
                         transition: "box-shadow 0.2s",
                         "&:hover": { boxShadow: "0 4px 16px rgba(0,0,0,0.1)" },
-                        opacity: pkg.available ? 1 : 0.65,
+                        // opacity: pkg.available ? 1 : 0.65,
                       }}
                   >
                     <CardMedia
@@ -129,14 +130,15 @@ export default function Booking() {
                           {pkg.name}
                         </Typography>
                         <Chip
-                            label={pkg.available ? "Available" : "Full"}
-                            color={pkg.available ? "success" : "default"}
+                            // label={pkg.available ? "Available" : "Full"}
+                            // color={pkg.available ? "success" : "default"}
                             size="small"
                         />
                       </Box>
                       <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
                         {pkg.destination} · {pkg.duration}
                       </Typography>
+                      <Box sx={{ mb: 1 }}><AverageRating value={pkg.rating} /></Box>
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: "0.8rem" }}>
                         {pkg.description}
                       </Typography>
@@ -147,7 +149,7 @@ export default function Booking() {
                         <Button
                             variant="contained"
                             size="small"
-                            disabled={!pkg.available}
+                            // disabled={!pkg.available}
                             onClick={() => setSelected(pkg)}
                         >
                           Book Now

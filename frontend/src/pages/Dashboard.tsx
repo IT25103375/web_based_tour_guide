@@ -29,6 +29,7 @@ import {useEffect, useState} from "react";
 import {tourPackageAPI} from "@/services/TourPackageService.tsx";
 import {TourPackage} from "@/models/TourPackage.ts";
 import {Package} from "@/pages/Booking.tsx";
+import AssignedGuides from "@/components/AssignedGuides.tsx";
 
 const statusColor = (s: string) =>
     s === "Confirmed" ? "success" : s === "Pending" ? "warning" : "error";
@@ -53,13 +54,13 @@ export default function Dashboard() {
             data.map((pkg: TourPackage, i: number) => ({
               id: pkg.id,
               name: pkg.displayName,
-              destination: pkg.offeredDestinationNames.join(", "),
+              destination: pkg.offeredDestinationNames ? pkg.offeredDestinationNames.join(", ") : "",
               price: pkg.price,
               duration: pkg.duration.toString(),
               description: pkg.description,
               image: "",
               maxCapacity: pkg.capacity,
-              available: true,
+              rating: pkg.avgRating,
             }))
         );
       }
@@ -136,6 +137,7 @@ export default function Dashboard() {
                       </TableBody>
                     </Table>
                   </TableContainer>
+                  <AssignedGuides />
                 </CardContent>
               </Card>
             </Grid>

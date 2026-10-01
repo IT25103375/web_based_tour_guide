@@ -9,6 +9,7 @@ import DestinationSearch from "./pages/DestinationSearch";
 import AdminPanel from "./pages/AdminPanel";
 import Register from "@/pages/Register.tsx";
 import {UserProvider} from "@/context/useAuth.tsx";
+import Tickets from "@/pages/Tickets.tsx";
 
 export default function App() {
     return (
@@ -24,6 +25,7 @@ export default function App() {
                         <Route path="/destinations" element={<DestinationSearch />} />
                         <Route path="/admin" element={<AdminPanel />} />
                         <Route path="/register" element={<Register />} />
+                        <Route path="/tickets" element={<Tickets />} />
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </BrowserRouter>

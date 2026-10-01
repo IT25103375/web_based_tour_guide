@@ -65,7 +65,7 @@ public class TourGuideService {
         return guide.getRatings(count);
     }
 
-    public int getRatingAvg(int guide_id) {
+    public double getRatingAvg(int guide_id) {
         TourGuide guide = guideRepository.findById(guide_id)
                 .orElseThrow(() -> new EntityNotFoundException("Tour Guide not found"));
 

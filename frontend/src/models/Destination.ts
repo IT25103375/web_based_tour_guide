@@ -1,8 +1,9 @@
 export interface Destination {
-    id: number | undefined;
+    id: number;
     displayName: string;
     location: string;
     description: string;
+    avgRating: number;
     offeredPackageIds: number[];
 }
 

@@ -22,11 +22,13 @@ import {
     AdminPanelSettings,
     Logout,
     TravelExplore,
+    ConfirmationNumber,
     Menu as MenuIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import {useAuth} from "@/context/useAuth.tsx";
+import NotificationBell from "./NotificationBell";
 
 const DRAWER_WIDTH = 240;
 
@@ -41,6 +43,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         { label: "Book a Tour", icon: <BookOnline />, path: "/booking" },
         { label: "Book Events", icon: <Event />, path: "/events" },
         { label: "Search Destinations", icon: <Search />, path: "/destinations" },
+        { label: "Support Tickets", icon: <ConfirmationNumber />, path: "/tickets" },
         isAdmin() && { label: "Admin Panel", icon: <AdminPanelSettings />, path: "/admin" },
     ].filter((item): item is {label: string, icon: any, path: string} => Boolean(item));
 
@@ -101,6 +104,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
     return (
         <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
+            <NotificationBell />
             <AppBar
                 position="fixed"
                 elevation={0}

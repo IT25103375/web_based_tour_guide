@@ -208,6 +208,12 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("No such Auth Entity"));
     }
 
+    @Transactional
+    public TourGuide getGuide(int guideId) {
+        return tourGuideRepository.findById(guideId)
+                .orElseThrow(() -> new EntityNotFoundException("No such Tour Guide"));
+    }
+
 //    @PreAuthorize("hasAnyRole('ROLE_PASSENGER', 'ROLE_DRIVER')")
 //    @Transactional
 //    public Integer[] getCurrentUserIds() throws EntityNotFoundException {

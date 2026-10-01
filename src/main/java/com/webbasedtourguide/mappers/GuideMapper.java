@@ -12,7 +12,7 @@ import java.util.List;
 @Mapper(componentModel = "spring", uses = IdResolver.class)
 public interface GuideMapper {
 
-    @Mapping(target = "avgRating", source = "java(tourGuide.getRatingAvg())")
+    @Mapping(target = "avgRating", expression = "java(tourGuide.getRatingAvg())")
     TourGuideDTO toDto(TourGuide tourGuide);
 
 //    TourGuide toEntity(TourGuideDTO dto);

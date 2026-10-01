@@ -14,10 +14,10 @@ import java.util.List;
 @Mapper(componentModel = "spring", uses = IdResolver.class)
 public interface ServiceMapper {
 
-    @Mapping(target = "sender", source = "sender.username")
+    @Mapping(target = "sender", ignore = true)
     UserMessage toEntity(UserMessageDTO dto);
 
-    @Mapping(target = "sender.username", source = "sender")
+    @Mapping(target = "sender", source = "sender.username")
     UserMessageDTO toDto(UserMessage entity);
 
     Ticket toEntity(TicketDTO dto);

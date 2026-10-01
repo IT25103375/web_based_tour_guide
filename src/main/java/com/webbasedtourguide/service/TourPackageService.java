@@ -121,7 +121,7 @@ public class TourPackageService {
         return pkg.getRatings(count);
     }
 
-    public int getRatingAvg(int pkg_id) {
+    public double getRatingAvg(int pkg_id) {
         TourPackage pkg = tourPackageRepository.findById(pkg_id)
                 .orElseThrow(() -> new EntityNotFoundException("Tour Package not found"));
 

@@ -12,14 +12,13 @@ import java.util.List;
 
 public class TourGuideDTO extends AuthEntityDependent {
 
-    @Id
-    @GeneratedValue
     private Integer id;
     private String name;
     private EnumSet<DayOfWeek> activeDays;
     private GuideStatus status;
     private String[] languages;
-    private int avgRating;
+    // Out of 5
+    private double avgRating;
 
     public Integer getId() {
         return id;
@@ -60,5 +59,13 @@ public class TourGuideDTO extends AuthEntityDependent {
 
     public void setLanguages(String[] languages) {
         this.languages = languages;
+    }
+
+    public double getAvgRating() {
+        return avgRating;
+    }
+
+    public void setAvgRating(double avgRating) {
+        this.avgRating = avgRating;
     }
 }

@@ -3,12 +3,15 @@ package com.webbasedtourguide.service;
 import com.webbasedtourguide.dto.BasicResponse;
 import com.webbasedtourguide.dto.EventControlDTO;
 import com.webbasedtourguide.dto.EventDetailsDTO;
+import com.webbasedtourguide.entities.Destination;
 import com.webbasedtourguide.entities.Event;
+import com.webbasedtourguide.entities.Rating;
 import com.webbasedtourguide.entities.TourPackage;
 import com.webbasedtourguide.exceptions.EventException;
 import com.webbasedtourguide.exceptions.PackageException;
 import com.webbasedtourguide.mappers.EventMapper;
 import com.webbasedtourguide.repositories.EventRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -105,5 +108,28 @@ public class EventService {
 
     public List<EventDetailsDTO> getValidEvents(Integer pkgId) {
         return eventMapper.toDtoList(eventRepository.getValidEvents(pkgId, Instant.now()));
+    }
+
+    @Transactional
+    public void addRating(int event_id, Rating rating) {
+        Event event = eventRepository.findById(event_id)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+
+        event.addRating(rating);
+        eventRepository.save(event);
+    }
+
+    public List<Rating> getRatings(int event_id, int count) {
+        Event event = eventRepository.findById(event_id)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+
+        return event.getRatings(count);
+    }
+
+    public double getRatingAvg(int event_id) {
+        Event event = eventRepository.findById(event_id)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found"));
+
+        return event.getRatingAvg();
     }
 }

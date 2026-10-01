@@ -14,6 +14,7 @@ public class EventDetailsDTO extends BasicResponse {
     private String location;
     private Integer capacity;
     private String description;
+    private double avgRating;
 
     // For display purposes
     private String displayName;
@@ -86,5 +87,13 @@ public class EventDetailsDTO extends BasicResponse {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public double getAvgRating() {
+        return avgRating;
+    }
+
+    public void setAvgRating(double avgRating) {
+        this.avgRating = avgRating;
     }
 }

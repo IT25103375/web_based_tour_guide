@@ -3,6 +3,7 @@ package com.webbasedtourguide.entities;
 import com.webbasedtourguide.enums.TicketStatus;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -15,17 +16,17 @@ public class Ticket {
     @Column(nullable = false)
     private String title;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(nullable = false)
     @OrderBy("id ASC")
-    private List<UserMessage> messages;
+    private List<UserMessage> messages = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private TicketStatus status = TicketStatus.AWAITINGRESPONSE;
 
-    @OneToMany
-    @JoinColumn(nullable = false)
-    private List<AuthEntity> authEntities;
+    // A user can follow many tickets and a ticket can have many followers
+    @ManyToMany
+    private List<AuthEntity> authEntities = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -41,6 +42,14 @@ public class Ticket {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public List<UserMessage> getMessages() {
+        return messages;
+    }
+
+    public TicketStatus getStatus() {
+        return status;
     }
 
     public void setMessages(List<UserMessage> messages) {
@@ -64,7 +73,8 @@ public class Ticket {
     }
 
     public void addObserver(AuthEntity dependent) {
-        authEntities.add(dependent);
+        if (!authEntities.contains(dependent))
+            authEntities.add(dependent);
     }
 
     public void removeObserver(int dependentId) {
@@ -74,13 +84,13 @@ public class Ticket {
     public void solveTicket() {
         status = TicketStatus.SOLVED;
 
-        Notification notif = new Notification("Ticket T%s solved".formatted(id),
-                messages.getLast().getContent().substring(0,
-                        Math.min(messages.getLast().getContent().length(), Notification.MSG_LENGTH)));
+        String notifTitle = "Ticket T%s solved".formatted(id);
+        String notifMessage = messages.getLast().getContent().substring(0,
+                Math.min(messages.getLast().getContent().length(), Notification.MSG_LENGTH));
 
         // Remove all dependents after sending solved notification
         authEntities.removeIf(authEntity -> {
-            authEntity.getDependent().addNotification(notif);
+            authEntity.getDependent().addNotification(new Notification(notifTitle, notifMessage));
             return true;
         });
     }

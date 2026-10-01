@@ -22,6 +22,8 @@ import { destinationAPI } from "../services/DestinationService";
 import {tourPackageAPI} from "@/services/TourPackageService.tsx";
 import {TourPackage} from "@/models/TourPackage.ts";
 import {Package} from "@/pages/Booking.tsx";
+import RatingSection from "@/components/RatingSection.tsx";
+import AverageRating from "@/components/AverageRating.tsx";
 
 interface Destination {
     id: number;
@@ -29,6 +31,7 @@ interface Destination {
     location: string;
     description: string;
     image: string;
+    rating?: number;
 }
 
 export default function DestinationSearch() {
@@ -46,13 +49,13 @@ export default function DestinationSearch() {
                     data.map((pkg) => ({
                         id: pkg.id,
                         name: pkg.displayName,
-                        destination: pkg.offeredDestinationNames.join(", "),
+                        destination: pkg.offeredDestinationNames ? pkg.offeredDestinationNames.join(", ") : "",
                         price: pkg.price,
                         duration: pkg.duration.toString(),
                         description: pkg.description,
                         image: "",
                         maxCapacity: pkg.capacity,
-                        available: true,
+                        rating: pkg.avgRating,
                     }))
                 );
             }
@@ -70,6 +73,7 @@ export default function DestinationSearch() {
                         location: dest.location,
                         description: dest.description,
                         image: "",
+                        rating: dest.avgRating,
                     }))
                 );
             }
@@ -140,6 +144,7 @@ export default function DestinationSearch() {
                                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: "0.8rem", mb: 1.5, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                                         {dest.description}
                                     </Typography>
+                                    <Box sx={{ mb: 1.5 }}><AverageRating value={dest.rating} /></Box>
                                     {/*<Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>*/}
                                     {/*  {dest.highlights.slice(0, 3).map((h) => (*/}
                                     {/*      <Chip key={h} label={h} size="small" sx={{ bgcolor: "#F0EBE1", fontSize: "0.7rem" }} />*/}
@@ -230,13 +235,14 @@ export default function DestinationSearch() {
                                                     <Typography variant="body2" sx={{ fontWeight: 700, color: "primary.main" }}>
                                                         LKR {pkg.price.toLocaleString()}
                                                     </Typography>
-                                                    <Chip label={pkg.available ? "Available" : "Full"} color={pkg.available ? "success" : "default"} size="small" />
+                                                    {/*<Chip label={pkg.available ? "Available" : "Full"} color={pkg.available ? "success" : "default"} size="small" />*/}
                                                 </Box>
                                                 <ArrowForward sx={{ fontSize: 16, color: "text.secondary" }} />
                                             </Box>
                                         ))}
                                     </Box>
                                 )}
+                                <RatingSection type="DESTINATION" typeId={selected.id} />
                             </DialogContent>
                         </>
                     )}

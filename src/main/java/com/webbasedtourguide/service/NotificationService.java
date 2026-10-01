@@ -25,6 +25,20 @@ public class NotificationService {
     }
 
     @Transactional
+    public void removeNotification(long id) {
+        AuthEntity user = userService.getCurrentUser();
+        user.getDependent().removeNotification(id);
+        authEntityRepository.save(user);
+    }
+
+    @Transactional
+    public void clearNotifications() {
+        AuthEntity user = userService.getCurrentUser();
+        user.getDependent().clearNotifications();
+        authEntityRepository.save(user);
+    }
+
+    @Transactional
     public void addNotification(int authId, Notification notif) {
         AuthEntity authEntity = userService.getUser(authId);
         authEntity.getDependent().addNotification(notif);
