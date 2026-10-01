@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-class NotificationService {
+public class NotificationService {
 
     private final AuthEntityRepository authEntityRepository;
     private final UserService userService;

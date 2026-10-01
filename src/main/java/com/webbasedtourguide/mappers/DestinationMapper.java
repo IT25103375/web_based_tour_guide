@@ -12,6 +12,7 @@ import java.util.List;
 @Mapper(componentModel = "spring", uses = com.webbasedtourguide.mappers.IdResolver.class)
 public interface DestinationMapper {
 
+    @Mapping(target = "avgRating", source = "java(destination.getRatingAvg())")
     @Mapping(target = "offeredPackageIds", source = "offeredPackages", qualifiedByName = "packagesToIds")
     DestinationDTO toDto(Destination destination);
 

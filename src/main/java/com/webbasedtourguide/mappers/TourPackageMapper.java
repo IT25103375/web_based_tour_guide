@@ -10,6 +10,7 @@ import java.util.List;
 @Mapper(componentModel = "spring", uses = IdResolver.class)
 public interface TourPackageMapper {
 
+    @Mapping(target = "avgRating", source = "java(tourPackage.getRatingAvg())")
     @Mapping(target = "offeredDestinationIds", source = "offeredDestinations", qualifiedByName = "destinationsToIds")
     @Mapping(target = "offeredDestinationNames", source = "offeredDestinations", qualifiedByName = "destinationsToNames")
     TourPackageDTO toDto(TourPackage tourPackage);

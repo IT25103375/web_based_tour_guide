@@ -6,6 +6,8 @@ import com.webbasedtourguide.dto.UserMessageDTO;
 import com.webbasedtourguide.entities.Rating;
 import com.webbasedtourguide.entities.Ticket;
 import com.webbasedtourguide.entities.UserMessage;
+import com.webbasedtourguide.exceptions.UserException;
+import com.webbasedtourguide.mappers.ServiceMapper;
 import com.webbasedtourguide.repositories.RatingRepository;
 import com.webbasedtourguide.repositories.TicketRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -16,8 +18,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-class SupportService {
+public class SupportService {
 
+    private final ServiceMapper serviceMapper;
     private final TicketRepository ticketRepository;
     private final RatingRepository ratingRepository;
     private final UserService userService;
@@ -25,9 +28,10 @@ class SupportService {
     private final TourGuideService tourGuideService;
     private final DestinationService destinationService;
 
-    SupportService(TicketRepository ticketRepository, RatingRepository ratingRepository,
+    SupportService(ServiceMapper serviceMapper, TicketRepository ticketRepository, RatingRepository ratingRepository,
                    UserService userService, TourPackageService tourPackageService,
                    TourGuideService tourGuideService, DestinationService destinationService) {
+        this.serviceMapper = serviceMapper;
         this.ticketRepository = ticketRepository;
         this.ratingRepository = ratingRepository;
         this.userService = userService;
@@ -41,17 +45,17 @@ class SupportService {
 
         Ticket ticket = new Ticket();
         ticket.setTitle(request.getTitle());
-        ticket.addMessage(new UserMessage(userService.getCurrentUser(), request.getMessage()));
+        ticket.addMessage(new UserMessage(userService.getCurrentUser(), request.getMessages().getFirst().getContent()));
 
         ticketRepository.save(ticket);
     }
 
     @Transactional
-    public void respondToTicket(int ticketId, UserMessageDTO request) {
+    public void respondToTicket(int id, TicketDTO request) {
 
-        Ticket ticket = ticketRepository.findById((long) ticketId)
+        Ticket ticket = ticketRepository.findById((long) id)
                 .orElseThrow(() -> new EntityNotFoundException("Ticket not found"));
-        ticket.addMessage(new UserMessage(userService.getCurrentUser(), request.getMessage()));
+        ticket.addMessage(new UserMessage(userService.getCurrentUser(), request.getFirstMessage().getContent()));
 
         ticketRepository.save(ticket);
     }
@@ -62,9 +66,19 @@ class SupportService {
                     TicketDTO dto = new TicketDTO();
                     dto.setId(Math.toIntExact(ticket.getId()));
                     dto.setTitle(ticket.getTitle());
-                    dto.setMessage(ticket.getFirstMessage().getContent());
+                    dto.addMessage(serviceMapper.toDto(ticket.getFirstMessage()));
                     return dto;
                 }).collect(Collectors.toList());
+    }
+
+    public TicketDTO getTicket(int id) {
+        Ticket ticket = ticketRepository.findById((long) id)
+                .orElseThrow(() -> new EntityNotFoundException("Ticket not found"));
+
+        if (!ticket.hasObserver(userService.getCurrentUser()))
+            throw new UserException("Unauthorized access");
+
+        return serviceMapper.toDto(ticket);
     }
 
     @Transactional

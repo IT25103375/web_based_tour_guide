@@ -1,12 +1,16 @@
 package com.webbasedtourguide.dto;
 
+import com.webbasedtourguide.entities.UserMessage;
+import com.webbasedtourguide.enums.TicketStatus;
+
+import java.util.List;
+
 public class TicketDTO {
 
+    private int id;
     private String title;
-    private String message;
-
-    // For get only
-    private int Id;
+    private TicketStatus status;
+    private List<UserMessageDTO> messages;
 
     public String getTitle() {
         return title;
@@ -16,19 +20,35 @@ public class TicketDTO {
         this.title = title;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
     public int getId() {
-        return Id;
+        return id;
     }
 
     public void setId(int id) {
-        Id = id;
+        id = id;
+    }
+
+    public TicketStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TicketStatus status) {
+        this.status = status;
+    }
+
+    public List<UserMessageDTO> getMessages() {
+        return messages;
+    }
+
+    public UserMessageDTO getFirstMessage() {
+        return messages.getFirst();
+    }
+
+    public void setMessages(List<UserMessageDTO> messages) {
+        this.messages = messages;
+    }
+
+    public void addMessage(UserMessageDTO dto) {
+        messages.add(dto);
     }
 }

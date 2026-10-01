@@ -8,6 +8,7 @@ public class DestinationDTO {
     private String displayName;
     private String location;
     private String description;
+    private int avgRating;
     private List<Integer> offeredPackageIds;
 
     public Integer getId() {
@@ -32,6 +33,14 @@ public class DestinationDTO {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public int getAvgRating() {
+        return avgRating;
+    }
+
+    public void setAvgRating(int avgRating) {
+        this.avgRating = avgRating;
     }
 
     public List<Integer> getOfferedPackageIds() {

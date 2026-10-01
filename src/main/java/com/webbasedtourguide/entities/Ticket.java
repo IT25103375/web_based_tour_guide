@@ -84,4 +84,8 @@ public class Ticket {
             return true;
         });
     }
+
+    public boolean hasObserver(AuthEntity authEntity) {
+        return authEntities.contains(authEntity);
+    }
 }
