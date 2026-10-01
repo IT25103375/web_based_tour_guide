@@ -21,11 +21,19 @@ class SupportService {
     private final TicketRepository ticketRepository;
     private final RatingRepository ratingRepository;
     private final UserService userService;
+    private final TourPackageService tourPackageService;
+    private final TourGuideService tourGuideService;
+    private final DestinationService destinationService;
 
-    SupportService(TicketRepository ticketRepository, RatingRepository ratingRepository, UserService userService) {
+    SupportService(TicketRepository ticketRepository, RatingRepository ratingRepository,
+                   UserService userService, TourPackageService tourPackageService,
+                   TourGuideService tourGuideService, DestinationService destinationService) {
         this.ticketRepository = ticketRepository;
         this.ratingRepository = ratingRepository;
         this.userService = userService;
+        this.tourPackageService = tourPackageService;
+        this.tourGuideService = tourGuideService;
+        this.destinationService = destinationService;
     }
 
     @Transactional
@@ -44,6 +52,8 @@ class SupportService {
         Ticket ticket = ticketRepository.findById((long) ticketId)
                 .orElseThrow(() -> new EntityNotFoundException("Ticket not found"));
         ticket.addMessage(new UserMessage(userService.getCurrentUser(), request.getMessage()));
+
+        ticketRepository.save(ticket);
     }
 
     public List<TicketDTO> getTickets() {
@@ -63,6 +73,8 @@ class SupportService {
         Ticket ticket = ticketRepository.findById((long) ticketId)
                 .orElseThrow(() -> new EntityNotFoundException("Ticket not found"));
         ticket.solveTicket();
+
+        ticketRepository.save(ticket);
     }
 
 
@@ -72,13 +84,19 @@ class SupportService {
 
         Rating rating = new Rating(userService.getCurrentUser(), request.getMessage(),
                 request.getRating(), request.getType());
+        ratingRepository.save(rating);
 
         switch (rating.getType()) {
             case TOURPACKAGE -> {
-
+                tourPackageService.addRating(Math.toIntExact(rating.getId()), rating);
             }
+            case TOURGUIDE -> {
+                tourGuideService.addRating(Math.toIntExact(rating.getId()), rating);
+            }
+            case DESTINATION -> {
+                destinationService.addRating(Math.toIntExact(rating.getId()), rating);
+            }
+            default -> throw new RuntimeException("Invalid rating type");
         }
-
-        ratingRepository.save(rating);
     }
 }

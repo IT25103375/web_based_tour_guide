@@ -3,11 +3,15 @@ package com.webbasedtourguide.service;
 import com.webbasedtourguide.dto.BasicResponse;
 import com.webbasedtourguide.dto.TourPackageDTO;
 import com.webbasedtourguide.entities.Destination;
+import com.webbasedtourguide.entities.Rating;
+import com.webbasedtourguide.entities.TourGuide;
 import com.webbasedtourguide.entities.TourPackage;
 import com.webbasedtourguide.exceptions.PackageException;
 import com.webbasedtourguide.mappers.TourPackageMapper;
 import com.webbasedtourguide.repositories.DestinationRepository;
 import com.webbasedtourguide.repositories.TourPackageRepository;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -34,6 +38,7 @@ public class TourPackageService {
         return packages;
     }
 
+    @Transactional
     public BasicResponse addPackage(TourPackageDTO request) {
         TourPackage tourPackage = new TourPackage();
         tourPackage.setDisplayName(request.getDisplayName());
@@ -44,6 +49,7 @@ public class TourPackageService {
         return BasicResponse.ok();
     }
 
+    @Transactional
     public BasicResponse editPackage(TourPackageDTO request) {
         Optional<TourPackage> opPackage = tourPackageRepository.findById(request.getId());
         if (opPackage.isEmpty()) return BasicResponse.badRequest("No such tour package");
@@ -57,12 +63,14 @@ public class TourPackageService {
         return BasicResponse.ok();
     }
 
+    @Transactional
     public BasicResponse deletePackage(TourPackageDTO request) {
         tourPackageRepository.deleteById(request.getId());
 
         return BasicResponse.ok();
     }
 
+    @Transactional
     public void addDestinationToPackages(Collection<Integer> packageIds, Destination destination) throws PackageException {
         List<TourPackage> packages = (List<TourPackage>) tourPackageRepository.findAllById(packageIds);
         // Cancel operation if a fetch failed
@@ -74,6 +82,7 @@ public class TourPackageService {
         }
     }
 
+    @Transactional
     public void removeDestinationFromPackages(Collection<Integer> packageIds, Destination destination) throws PackageException {
         List<TourPackage> packages = (List<TourPackage>) tourPackageRepository.findAllById(packageIds);
         // Cancel operation if a fetch failed
@@ -94,5 +103,28 @@ public class TourPackageService {
 
     public List<TourPackageDTO> getAllPackages() {
         return tourPackageMapper.toDtoList((List<TourPackage>) tourPackageRepository.findAll());
+    }
+
+    @Transactional
+    public void addRating(int pkg_id, Rating rating) {
+        TourPackage pkg = tourPackageRepository.findById(pkg_id)
+                .orElseThrow(() -> new EntityNotFoundException("Tour Package not found"));
+
+        pkg.addRating(rating);
+        tourPackageRepository.save(pkg);
+    }
+
+    public List<Rating> getRatings(int pkg_id, int count) {
+        TourPackage pkg = tourPackageRepository.findById(pkg_id)
+                .orElseThrow(() -> new EntityNotFoundException("Tour Package not found"));
+
+        return pkg.getRatings(count);
+    }
+
+    public int getRatingAvg(int pkg_id) {
+        TourPackage pkg = tourPackageRepository.findById(pkg_id)
+                .orElseThrow(() -> new EntityNotFoundException("Tour Package not found"));
+
+        return pkg.getRatingAvg();
     }
 }

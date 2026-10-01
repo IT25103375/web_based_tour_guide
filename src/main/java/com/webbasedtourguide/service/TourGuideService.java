@@ -1,18 +1,20 @@
 package com.webbasedtourguide.service;
 
+import com.webbasedtourguide.dto.TicketDTO;
+import com.webbasedtourguide.entities.Rating;
 import com.webbasedtourguide.entities.TourGuide;
 import com.webbasedtourguide.enums.GuideStatus;
 import com.webbasedtourguide.exceptions.GuideException;
 import com.webbasedtourguide.repositories.TourGuideRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TourGuideService {
@@ -43,7 +45,30 @@ public class TourGuideService {
     }
 
     @Transactional
-    public boolean setGuideBooked(Integer id) {
-        return guideRepository.updateGuideStatus(id, GuideStatus.BOOKED) == 1;
+    public void setGuideBooked(Integer id) {
+        guideRepository.updateGuideStatus(id, GuideStatus.BOOKED);
+    }
+
+    @Transactional
+    public void addRating(int guide_id, Rating rating) {
+        TourGuide guide = guideRepository.findById(guide_id)
+                .orElseThrow(() -> new EntityNotFoundException("Tour Guide not found"));
+
+        guide.addRating(rating);
+        guideRepository.save(guide);
+    }
+
+    public List<Rating> getRatings(int guide_id, int count) {
+        TourGuide guide = guideRepository.findById(guide_id)
+                .orElseThrow(() -> new EntityNotFoundException("Tour Guide not found"));
+
+        return guide.getRatings(count);
+    }
+
+    public int getRatingAvg(int guide_id) {
+        TourGuide guide = guideRepository.findById(guide_id)
+                .orElseThrow(() -> new EntityNotFoundException("Tour Guide not found"));
+
+        return guide.getRatingAvg();
     }
 }

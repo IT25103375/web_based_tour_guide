@@ -18,6 +18,9 @@ public class Destination {
     @ManyToMany(mappedBy = "offeredDestinations")
     List<TourPackage> offeredPackages;
 
+    @OneToMany
+    private List<Rating> ratings;
+
     public Integer getId() {
         return id;
     }
@@ -56,5 +59,19 @@ public class Destination {
 
     public void setDestination(String destination) {
         this.destination = destination;
+    }
+
+    public void addRating(Rating rating) {
+        ratings.add(rating);
+    }
+
+    public List<Rating> getRatings(int count) {
+        return ratings.subList(0, Math.min(ratings.size(), count));
+    }
+
+    public int getRatingAvg() {
+        return (int) ratings.stream().mapToInt(Rating::getStarRating)
+                .average()
+                .orElse(0);
     }
 }

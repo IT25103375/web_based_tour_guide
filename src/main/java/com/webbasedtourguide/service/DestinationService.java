@@ -3,11 +3,15 @@ package com.webbasedtourguide.service;
 import com.webbasedtourguide.dto.BasicResponse;
 import com.webbasedtourguide.dto.DestinationDTO;
 import com.webbasedtourguide.entities.Destination;
+import com.webbasedtourguide.entities.Rating;
+import com.webbasedtourguide.entities.TourGuide;
 import com.webbasedtourguide.entities.TourPackage;
+import com.webbasedtourguide.enums.GuideStatus;
 import com.webbasedtourguide.exceptions.DestinationException;
 import com.webbasedtourguide.exceptions.PackageException;
 import com.webbasedtourguide.mappers.DestinationMapper;
 import com.webbasedtourguide.repositories.DestinationRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -81,5 +85,28 @@ public class DestinationService {
 
     public Optional<Destination> getDestination(Integer id) {
         return destinationRepository.findById(id);
+    }
+
+    @Transactional
+    public void addRating(int dest_id, Rating rating) {
+        Destination dest = destinationRepository.findById(dest_id)
+                .orElseThrow(() -> new EntityNotFoundException("Destination not found"));
+
+        dest.addRating(rating);
+        destinationRepository.save(dest);
+    }
+
+    public List<Rating> getRatings(int dest_id, int count) {
+        Destination dest = destinationRepository.findById(dest_id)
+                .orElseThrow(() -> new EntityNotFoundException("Destination not found"));
+
+        return dest.getRatings(count);
+    }
+
+    public int getRatingAvg(int dest_id) {
+        Destination dest = destinationRepository.findById(dest_id)
+                .orElseThrow(() -> new EntityNotFoundException("Destination not found"));
+
+        return dest.getRatingAvg();
     }
 }
