@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -20,7 +21,7 @@ public class Event {
     private BigDecimal price;
 
     @ManyToMany(mappedBy = "offeredEvents")
-    private List<TourPackage> applicablePackages;
+    private List<TourPackage> applicablePackages = new ArrayList<>();
 
     @Column(nullable = false)
     private Instant startDate = Instant.now();
@@ -31,7 +32,8 @@ public class Event {
     private String description;
 
     @OneToMany
-    private List<Rating> ratings;
+    @JoinColumn(name = "event_id")
+    private List<Rating> ratings = new ArrayList<>();
 
     public Integer getCapacity() {
         return capacity;

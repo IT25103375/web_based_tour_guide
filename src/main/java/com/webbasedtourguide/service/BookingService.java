@@ -50,8 +50,13 @@ public class BookingService {
                 orElseThrow(() -> new TourException("Package not found")));
         booking.setGuide(tourGuideService.findSuitableGuide(request.getBookedDate()));
         booking.setDiscount(discountService.getDiscount(request.getCouponCode(), request.getPackageId()));
-        booking.setFinalPrice(discountService.applyDiscount(
-                booking.getTourPackage().getPrice(), booking.getDiscount()));
+
+        if (booking.getDiscount() != null)
+            booking.setFinalPrice(discountService.applyDiscount(
+                    booking.getTourPackage().getPrice(), booking.getDiscount()));
+        else
+            booking.setFinalPrice(booking.getTourPackage().getPrice());
+
         booking.setBookedDate(request.getBookedDate());
         booking.setStatus(BookingStatus.BOOKED);
 

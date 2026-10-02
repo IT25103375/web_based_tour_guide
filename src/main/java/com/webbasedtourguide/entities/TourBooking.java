@@ -30,10 +30,10 @@ public class TourBooking {
     private TourGuide guide;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn
     private Discount discount;
 
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private BookingStatus status = BookingStatus.UNCONFIRMED;
 
     @Column(nullable = false)

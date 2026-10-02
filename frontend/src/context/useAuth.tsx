@@ -93,41 +93,49 @@ export const UserProvider = ({children} : Props) => {
                 }))
     }
 
-    const loginUser = async (email:string, password: string) => {
-        await loginAPI(email, password).then((res) => {
-            if(res && res.data.success) {
-                localStorage.setItem("token", res?.data.token);
+    const loginUser = async (email: string, password: string) => {
+        try {
+            const res = await loginAPI(email, password);
+            if (res && res.data.success) {
+                const newToken = res.data.token;
+
+                // 1. Set global Axios header immediately for the active session
+                axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+
+                // 2. Persist to storage and state
+                localStorage.setItem("token", newToken);
                 const userObj: UserProfile = {
-                    username: res?.data.username,
+                    username: res.data.username,
                     email: email,
-                    role: res?.data.role,
-                }
-                localStorage.setItem("user", JSON.stringify(userObj))
-                setToken(res?.data.token!);
-                setUser(userObj!);
+                    role: res.data.role,
+                };
+                localStorage.setItem("user", JSON.stringify(userObj));
+                setToken(newToken);
+                setUser(userObj);
+
                 toast.success("Login Success", {
                     hideProgressBar: true,
                     closeOnClick: true,
                     transition: Slide,
                     position: "bottom-right",
-                })
-                // navigate("/search");
-            }
-            else {
+                });
+            } else {
                 toast.error("Login Failed", {
                     hideProgressBar: true,
                     closeOnClick: true,
                     transition: Slide,
                     position: "bottom-right",
-                })
+                });
             }
-        }).catch((e) => toast.warning("Server error occured", {
-                    hideProgressBar: true,
-                    closeOnClick: true,
-                    transition: Bounce,
-                    position: "bottom-right",
-                }))
-    }
+        } catch (e) {
+            toast.warning("Server error occurred", {
+                hideProgressBar: true,
+                closeOnClick: true,
+                transition: Bounce,
+                position: "bottom-right",
+            });
+        }
+    };
 
     const isLoggedIn = () => {
         return !!user;

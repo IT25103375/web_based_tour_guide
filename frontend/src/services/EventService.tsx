@@ -14,7 +14,7 @@ export const eventAPI = {
         }
     },
 
-    addEvent: async (event: Omit<EventEntity, "eventId">) => {
+    addEvent: async (event: Omit<Omit<EventEntity, "eventId">, "avgRating">) => {
         try {
             return await axios.post<string>(api + "api/event/admin", event);
         } catch (error) {
@@ -22,7 +22,7 @@ export const eventAPI = {
         }
     },
 
-    editEvent: async (event: EventEntity) => {
+    editEvent: async (event: Omit<EventEntity, "avgRating">) => {
         try {
             return await axios.put<string>(api + "api/event/admin", event);
         } catch (error) {
@@ -48,7 +48,7 @@ export const eventAPI = {
         }
     },
 
-    registerEvent: async (eventId: number, pkgId: number) => {
+    registerEvent: async (eventId: number | undefined, pkgId: number) => {
         try {
             const form = new URLSearchParams();
             form.append("eventId", String(eventId));

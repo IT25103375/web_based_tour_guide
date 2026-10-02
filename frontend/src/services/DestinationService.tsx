@@ -24,7 +24,7 @@ export const destinationAPI = {
         }
     },
 
-    addDestination: async (destination: Omit<Destination, "id">) => {
+    addDestination: async (destination: Omit<Destination, "id" | "avgRating">) => {
         try {
             return await axios.post<string>(api + "api/destination", destination);
         } catch (error) {
@@ -32,7 +32,7 @@ export const destinationAPI = {
         }
     },
 
-    editDestination: async (destination: Destination) => {
+    editDestination: async (destination: Omit<Destination, "avgRating">) => {
         try {
             return await axios.put<string>(api + "api/destination", destination);
         } catch (error) {

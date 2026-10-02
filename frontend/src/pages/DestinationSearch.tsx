@@ -26,7 +26,7 @@ import RatingSection from "@/components/RatingSection.tsx";
 import AverageRating from "@/components/AverageRating.tsx";
 
 interface Destination {
-    id: number;
+    id: number | undefined;
     displayName: string;
     location: string;
     description: string;
@@ -242,7 +242,7 @@ export default function DestinationSearch() {
                                         ))}
                                     </Box>
                                 )}
-                                <RatingSection type="DESTINATION" typeId={selected.id} />
+                                <RatingSection type="DESTINATION" typeId={selected.id ?? null} />
                             </DialogContent>
                         </>
                     )}

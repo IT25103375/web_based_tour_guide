@@ -1,5 +1,5 @@
 export interface EventEntity {
-    eventId: number;
+    eventId: number | undefined;
     eventName: string;
     location: string;
     description: string;

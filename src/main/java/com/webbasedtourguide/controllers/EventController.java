@@ -1,5 +1,6 @@
 package com.webbasedtourguide.controllers;
 
+import com.webbasedtourguide.dto.BasicResponse;
 import com.webbasedtourguide.dto.EventControlDTO;
 import com.webbasedtourguide.dto.EventDetailsDTO;
 import com.webbasedtourguide.exceptions.EventException;
@@ -54,7 +55,7 @@ class EventController {
     @PreAuthorize("hasAnyRole('ROLE_AGENCYSTAFF', 'ROLE_TOURMANAGER')")
     public ResponseEntity<String> createEvent(@RequestBody EventControlDTO request) {
         try {
-            return ResponseEntity.ok().body(eventService.createNewEvent(request).getMessage());
+            return toResponse(eventService.createNewEvent(request));
         } catch (PackageException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -64,7 +65,7 @@ class EventController {
     @PreAuthorize("hasAnyRole('ROLE_AGENCYSTAFF', 'ROLE_TOURMANAGER')")
     public ResponseEntity<String> updateEvent(@RequestBody EventControlDTO request) {
         try {
-            return ResponseEntity.ok().body(eventService.editEvent(request).getMessage());
+            return toResponse(eventService.editEvent(request));
         } catch (EventException | PackageException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -73,6 +74,12 @@ class EventController {
     @DeleteMapping("/admin")
     @PreAuthorize("hasAnyRole('ROLE_AGENCYSTAFF', 'ROLE_TOURMANAGER')")
     public ResponseEntity<String> deleteEvent(@RequestBody EventControlDTO request) {
-        return ResponseEntity.ok().body(eventService.deleteEvent(request.getEventId()).getMessage());
+        return toResponse(eventService.deleteEvent(request.getEventId()));
+    }
+
+    private ResponseEntity<String> toResponse(BasicResponse response) {
+        return response.isSuccess()
+                ? ResponseEntity.ok().body(response.getMessage())
+                : ResponseEntity.badRequest().body(response.getMessage());
     }
 }

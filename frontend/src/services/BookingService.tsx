@@ -14,7 +14,7 @@ export const bookingAPI = {
     },
 
     // Backend binds BookingDetailsDTO as request params (no @RequestBody), so send as form data
-    bookTour: async (packageId: number, bookedDate: string, couponCode?: string) => {
+    bookTour: async (packageId: number | undefined, bookedDate: string, couponCode?: string) => {
         try {
             const form = new URLSearchParams();
             form.append("packageId", String(packageId));

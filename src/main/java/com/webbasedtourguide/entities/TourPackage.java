@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.jspecify.annotations.NonNull;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,16 +23,17 @@ public class TourPackage {
     private int capacity;
 
     @ManyToMany
-    private List<Destination> offeredDestinations;
+    private List<Destination> offeredDestinations = new ArrayList<>();
 
     @ManyToMany
-    private List<Event> offeredEvents;
+    private List<Event> offeredEvents = new ArrayList<>();
 
     @ManyToMany
-    private List<Discount> offeredDiscounts;
+    private List<Discount> offeredDiscounts = new ArrayList<>();
 
     @OneToMany
-    private List<Rating> ratings;
+    @JoinColumn(name = "tour_package_id")
+    private List<Rating> ratings = new ArrayList<>();
 
     public Integer getId() {
         return id;
@@ -75,6 +77,38 @@ public class TourPackage {
 
     public void addAllDestinations(@NonNull Collection<? extends Destination> c) {
         this.offeredDestinations.addAll(c);
+    }
+
+    public List<Event> getOfferedEvents() {
+        return offeredEvents;
+    }
+
+    public void setOfferedEvents(List<Event> offeredEvents) {
+        this.offeredEvents = offeredEvents;
+    }
+
+    public void addEvent(Event event) {
+        if (!this.offeredEvents.contains(event)) this.offeredEvents.add(event);
+    }
+
+    public void removeEvent(Event event) {
+        this.offeredEvents.remove(event);
+    }
+
+    public List<Discount> getOfferedDiscounts() {
+        return offeredDiscounts;
+    }
+
+    public void setOfferedDiscounts(List<Discount> offeredDiscounts) {
+        this.offeredDiscounts = offeredDiscounts;
+    }
+
+    public void addDiscount(Discount discount) {
+        if (!this.offeredDiscounts.contains(discount)) this.offeredDiscounts.add(discount);
+    }
+
+    public void removeDiscount(Discount discount) {
+        this.offeredDiscounts.remove(discount);
     }
 
     public int getDuration() {

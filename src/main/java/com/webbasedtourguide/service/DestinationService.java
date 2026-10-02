@@ -36,9 +36,11 @@ public class DestinationService {
     public BasicResponse addDestination(DestinationDTO request) throws PackageException {
 
         Destination destination = destinationMapper.toEntity(request);
+        destination.setId(null);
         destinationRepository.save(destination);
 
-        tourPackageService.addDestinationToPackages(request.getOfferedPackageIds(), destination);
+        if (request.getOfferedPackageIds() != null)
+            tourPackageService.addDestinationToPackages(request.getOfferedPackageIds(), destination);
 
         return BasicResponse.ok();
     }
@@ -52,6 +54,8 @@ public class DestinationService {
         Destination destination = opDestination.get();
         if (request.getDisplayName() != null && !request.getDisplayName().isBlank()) destination.setDisplayName(request.getDisplayName());
         if (request.getLocation() != null && !request.getLocation().isBlank()) destination.setLocation(request.getLocation());
+        if (request.getDescription() != null) destination.setDescription(request.getDescription());
+        destinationRepository.save(destination);
 
         return BasicResponse.ok();
     }

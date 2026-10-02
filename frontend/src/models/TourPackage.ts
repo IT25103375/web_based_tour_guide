@@ -1,5 +1,5 @@
 export interface TourPackage {
-    id: number;
+    id: number | undefined;
     displayName: string;
     price: number;
     duration: number;
@@ -8,6 +8,9 @@ export interface TourPackage {
     avgRating: number;
     offeredDestinationIds: number[] | null;
     offeredDestinationNames: string[] | null;
+    offeredEventIds: number[] | null;
+    offeredEventNames: string[] | null;
+    offeredDiscountIds: number[] | null;
 }
 
 export type TourPackageList = TourPackage[] | null

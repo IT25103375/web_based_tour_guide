@@ -10,7 +10,7 @@ import java.time.DayOfWeek;
 import java.util.EnumSet;
 import java.util.List;
 
-public class TourGuideDTO extends AuthEntityDependent {
+public class TourGuideDTO {
 
     private Integer id;
     private String name;
@@ -19,6 +19,14 @@ public class TourGuideDTO extends AuthEntityDependent {
     private String[] languages;
     // Out of 5
     private double avgRating;
+
+    public EnumSet<DayOfWeek> getActiveDays() {
+        return activeDays;
+    }
+
+    public void setActiveDays(EnumSet<DayOfWeek> activeDays) {
+        this.activeDays = activeDays;
+    }
 
     public Integer getId() {
         return id;
@@ -34,15 +42,6 @@ public class TourGuideDTO extends AuthEntityDependent {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public boolean getDayAvailability(DayOfWeek day) {
-        return activeDays.contains(day);
-    }
-
-    public void setDayAvailability(List<DayOfWeek> days, boolean active) {
-        if (active) activeDays.addAll(days);
-        else days.forEach(activeDays::remove);
     }
 
     public GuideStatus getStatus() {

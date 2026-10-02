@@ -11,12 +11,14 @@ import {
   Alert,
   Select,
   MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import { TravelExplore, Visibility, VisibilityOff } from "@mui/icons-material";
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {useAuth} from "@/context/useAuth.tsx";
-import {UserType} from "@/enums/UserType.ts";
+import { useAuth } from "@/context/useAuth.tsx";
+import { UserType } from "@/enums/UserType.ts";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -24,22 +26,22 @@ export default function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [type, setType] = useState(UserType.Tourist);
+  const [type, setType] = useState<UserType>(UserType.Tourist);
   const [error, setError] = useState("");
-  const {registerUser, isLoggedIn} = useAuth();
+  const { registerUser, isLoggedIn } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setError("Please enter your email and password.");
+    if (!username || !email || !password) {
+      setError("Please fill in all fields.");
       return;
     }
-    registerUser(username, email, password, type)
+    registerUser(username, email, password, type);
   };
 
   useEffect(() => {
-    if (isLoggedIn()) navigate("/dashboard")
-  }, [isLoggedIn()]);
+    if (isLoggedIn()) navigate("/dashboard");
+  }, [isLoggedIn, navigate]);
 
   return (
     <Box
@@ -71,7 +73,7 @@ export default function Register() {
                 </Typography>
               </Box>
               <Typography variant="body2" color="text.secondary">
-                Sign in to your account to continue
+                Create an account to continue
               </Typography>
             </Box>
 
@@ -85,13 +87,13 @@ export default function Register() {
 
             <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <TextField
-                  label="Username"
-                  type="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  fullWidth
-                  size="small"
-                  autoComplete="username"
+                label="Username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                fullWidth
+                size="small"
+                autoComplete="username"
               />
               <TextField
                 label="Email address"
@@ -109,7 +111,7 @@ export default function Register() {
                 onChange={(e) => setPassword(e.target.value)}
                 fullWidth
                 size="small"
-                autoComplete="current-password"
+                autoComplete="new-password"
                 slotProps={{
                   input: {
                     endAdornment: (
@@ -122,13 +124,20 @@ export default function Register() {
                   },
                 }}
               />
-              <Select
-                  label="Type"
-                  defaultValue={(type as { role?: UserType })?.role ?? UserType.Tourist}
-              >
-                <MenuItem value={UserType.Tourist}>Tourist</MenuItem>
-                <MenuItem value={UserType.TourGuide}>Tour Guide</MenuItem>
-              </Select>
+
+              <FormControl fullWidth size="small">
+                <InputLabel id="user-type-select-label">Account Type</InputLabel>
+                <Select
+                  labelId="user-type-select-label"
+                  label="Account Type"
+                  value={type}
+                  onChange={(e) => setType(e.target.value as UserType)}
+                >
+                  <MenuItem value={UserType.Tourist}>Tourist</MenuItem>
+                  <MenuItem value={UserType.TourGuide}>Tour Guide</MenuItem>
+                </Select>
+              </FormControl>
+
               <Button type="submit" variant="contained" size="large" fullWidth sx={{ mt: 0.5, py: 1.2 }}>
                 Register
               </Button>
@@ -136,8 +145,13 @@ export default function Register() {
 
             <Box sx={{ mt: 2.5, textAlign: "center" }}>
               <Typography variant="body2" color="text.secondary">
-                Have an account? {" "}
-                <Typography onClick={() => navigate("/login")} component="span" variant="body2" sx={{ color: "primary.main", cursor: "pointer", fontWeight: 600 }}>
+                Have an account?{" "}
+                <Typography
+                  onClick={() => navigate("/login")}
+                  component="span"
+                  variant="body2"
+                  sx={{ color: "primary.main", cursor: "pointer", fontWeight: 600 }}
+                >
                   Log in
                 </Typography>
               </Typography>

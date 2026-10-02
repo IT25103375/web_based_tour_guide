@@ -16,7 +16,7 @@ public interface DestinationMapper {
     @Mapping(target = "offeredPackageIds", source = "offeredPackages", qualifiedByName = "packagesToIds")
     DestinationDTO toDto(Destination destination);
 
-    @Mapping(target = "offeredPackages", source = "offeredPackageIds", qualifiedByName = "idsToPackages")
+    @Mapping(target = "offeredPackages", ignore = true)
     Destination toEntity(DestinationDTO dto);
 
     List<DestinationDTO> toDtoList(List<Destination> destinations);

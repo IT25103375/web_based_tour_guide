@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.data.repository.query.Param;
 
 import java.time.DayOfWeek;
 import java.util.List;
@@ -16,10 +17,12 @@ public interface TourGuideRepository extends CrudRepository<TourGuide, Integer> 
     Optional<TourGuide> findByAuthEntity_Email(String email);
 
     // Using bitmask to represent days of week and their combinations, monday = 1, tuesday = 2, wednesday = 4 etc.
-    @Query(value = "SELECT g from TourGuide g WHERE g.status = GuideStatus.AVAILABLE AND (g.activeDays & :day_bitmask)", nativeQuery = true)
-    List<TourGuide> findAvailableGuides(int day_bitmask);
+    @Query(
+            value = "SELECT * FROM tour_guide WHERE status = 'AVAILABLE' AND BITAND(active_days, CAST(?1 AS INT)) <> 0",
+            nativeQuery = true)
+    List<TourGuide> findAvailableGuides(@Param("day") int day);
 
     @Modifying
-    @Query("UPDATE TourGuide g SET g.status = :status WHERE g.id = : id")
-    int updateGuideStatus(Integer id, GuideStatus status);
+    @Query("UPDATE TourGuide g SET g.status = :status WHERE g.id = :id")
+    int updateGuideStatus(int id, GuideStatus status);
 }

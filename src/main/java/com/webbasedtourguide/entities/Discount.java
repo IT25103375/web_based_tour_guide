@@ -7,6 +7,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class Discount {
     private Integer id;
 
     @ManyToMany(mappedBy = "offeredDiscounts")
-    private List<TourPackage> applicablePackages;
+    private List<TourPackage> applicablePackages = new ArrayList<>();
 
     private String couponCode;
     private BigDecimal minAmount;
@@ -28,10 +29,10 @@ public class Discount {
     private BigDecimal percentage;
     private BigDecimal fixed;
 
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private DiscountPriceType discountPriceType = DiscountPriceType.INVALID;
 
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private DiscountTimeType discountTimeType = DiscountTimeType.INVALID;
 
     @Column(nullable = false)

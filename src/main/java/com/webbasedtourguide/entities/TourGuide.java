@@ -23,13 +23,13 @@ public class TourGuide extends AuthEntityDependent {
     @Convert(converter = DayOfWeekSetConverter.class)
     private EnumSet<DayOfWeek> activeDays = EnumSet.noneOf(DayOfWeek.class);
 
-    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private GuideStatus status = GuideStatus.AVAILABLE;
 
-    @Column(nullable = false)
     private String[] languages;
 
     @OneToMany
+    @JoinColumn(name = "tour_guide_id")
     private List<Rating> ratings;
 
     public Integer getId() {
@@ -85,5 +85,9 @@ public class TourGuide extends AuthEntityDependent {
         return ratings.stream().mapToInt(Rating::getStarRating)
                 .average()
                 .orElse(0);
+    }
+
+    public EnumSet<DayOfWeek> getActiveDays() {
+        return activeDays;
     }
 }

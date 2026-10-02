@@ -33,8 +33,24 @@ public class EventService {
         this.eventMapper = eventMapper;
     }
 
+    private String validate(EventControlDTO r, boolean creating) {
+        if (creating && (r.getEventName() == null || r.getEventName().isBlank())) return "Event name is required";
+        if (creating && (r.getLocation() == null || r.getLocation().isBlank())) return "Location is required";
+        if (creating && r.getPrice() == null) return "Price is required";
+        if (r.getPrice() != null && r.getPrice().signum() < 0) return "Price cannot be negative";
+        if (r.getCapacity() != null && r.getCapacity() < 0) return "Capacity cannot be negative";
+        if (creating && (r.getStartDate() == null || r.getEndDate() == null)) return "Start and end dates are required";
+        return null;
+    }
+
     @Transactional
     public BasicResponse createNewEvent(EventControlDTO request) throws PackageException {
+
+        String error = validate(request, true);
+        if (error != null) return BasicResponse.badRequest(error);
+        if (request.getEndDate().isBefore(request.getStartDate())) return BasicResponse.badRequest("End date cannot be before start date");
+        if (request.getApplicablePackages() == null || request.getApplicablePackages().isEmpty())
+            return BasicResponse.badRequest("Select at least one tour package");
 
         Event event = new Event();
         event.setDisplayName(request.getEventName());
@@ -42,9 +58,11 @@ public class EventService {
         event.setPrice(request.getPrice());
         event.setStartDate(request.getStartDate());
         event.setEndDate(request.getEndDate());
-        event.setApplicablePackages(tourPackageService.getPackages(request.getApplicablePackages()));
         event.setCapacity(request.getCapacity());
+        event.setDescription(request.getDescription());
         eventRepository.save(event);
+        // Packages own the relation, so link from their side (validates that every package exists)
+        tourPackageService.setEventPackages(event, request.getApplicablePackages());
 
         return BasicResponse.ok();
     }
@@ -55,22 +73,36 @@ public class EventService {
         Event event = eventRepository.findById(request.getEventId())
                 .orElseThrow(() -> new EventException("No such event"));
 
+        String error = validate(request, false);
+        if (error != null) return BasicResponse.badRequest(error);
+
+        Instant start = request.getStartDate() != null ? request.getStartDate() : event.getStartDate();
+        Instant end = request.getEndDate() != null ? request.getEndDate() : event.getEndDate();
+        if (end.isBefore(start)) return BasicResponse.badRequest("End date cannot be before start date");
+
+        if (request.getApplicablePackages() != null && request.getApplicablePackages().isEmpty())
+            return BasicResponse.badRequest("Select at least one tour package");
+
         if (request.getEventName() != null && !request.getEventName().isBlank()) event.setDisplayName(request.getEventName());
         if (request.getLocation() != null && !request.getLocation().isBlank()) event.setLocation(request.getLocation());
         if (request.getPrice() != null) event.setPrice(request.getPrice());
-        if (request.getStartDate() != null) event.setStartDate(request.getStartDate());
-        if (request.getEndDate() != null) event.setEndDate(request.getEndDate());
+        event.setStartDate(start);
+        event.setEndDate(end);
         if (request.getCapacity() != null) event.setCapacity(request.getCapacity());
-        if (request.getApplicablePackages() != null && !request.getApplicablePackages().isEmpty())
-            event.setApplicablePackages(tourPackageService.getPackages(request.getApplicablePackages()));
+        if (request.getDescription() != null) event.setDescription(request.getDescription());
         eventRepository.save(event);
+        if (request.getApplicablePackages() != null)
+            tourPackageService.setEventPackages(event, request.getApplicablePackages());
 
         return BasicResponse.ok();
     }
 
     @Transactional
     public BasicResponse deleteEvent(Integer id) {
-        eventRepository.deleteById(id);
+        Event event = eventRepository.findById(id).orElse(null);
+        if (event == null) return BasicResponse.badRequest("No such event");
+        tourPackageService.detachEvent(event);
+        eventRepository.delete(event);
         return BasicResponse.ok();
     }
 
@@ -88,6 +120,8 @@ public class EventService {
         dto.setStartDate(event.getStartDate());
         dto.setEndDate(event.getEndDate());
         dto.setCapacity(event.getCapacity());
+        dto.setDescription(event.getDescription());
+        dto.setAvgRating(event.getRatingAvg());
         dto.setApplicablePackages(event.getApplicablePackages() == null ? List.of() :
                 event.getApplicablePackages().stream().map(TourPackage::getId).collect(Collectors.toList()));
         return dto;

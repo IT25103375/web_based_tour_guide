@@ -29,7 +29,7 @@ import RatingSection from "@/components/RatingSection.tsx";
 import AverageRating from "@/components/AverageRating.tsx";
 
 interface EventItem {
-    id: number;
+    id: number | undefined;
     packageId: number;
     displayName: string;
     description: string;
@@ -83,10 +83,10 @@ export default function EventBooking() {
             if (Array.isArray(data)) {
                 setBookings(
                     data.map((booking: any) => ({
-                        id: booking.bookingId,
-                        tourPackageId: booking.packageId,
+                        bookingId: booking.bookingId,
+                        packageId: booking.packageId,
                         packageName: booking.packageName,
-                        touristId: booking.bookerId,
+                        bookerId: booking.bookerId,
                         eventId: booking.eventId,
                         guideId: booking.guideId,
                         guideName: booking.guideName,
@@ -118,7 +118,7 @@ export default function EventBooking() {
                         onChange={(e) => setSelectedPackageId(e.target.value as number)}
                     >
                         {bookings.map((pkg) => (
-                            <MenuItem key={pkg.id} value={pkg.id}>
+                            <MenuItem key={pkg.packageId} value={pkg.packageId}>
                                 {pkg.packageName}
                             </MenuItem>
                         ))}

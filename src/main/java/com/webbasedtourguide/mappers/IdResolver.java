@@ -1,8 +1,12 @@
 package com.webbasedtourguide.mappers;
 
 import com.webbasedtourguide.entities.Destination;
+import com.webbasedtourguide.entities.Discount;
+import com.webbasedtourguide.entities.Event;
 import com.webbasedtourguide.entities.TourPackage;
 import com.webbasedtourguide.repositories.DestinationRepository;
+import com.webbasedtourguide.repositories.DiscountRepository;
+import com.webbasedtourguide.repositories.EventRepository;
 import com.webbasedtourguide.repositories.TourPackageRepository;
 import org.mapstruct.Named;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +23,58 @@ public class IdResolver {
 
     @Autowired
     private TourPackageRepository tourPackageRepository;
+
+    @Autowired
+    private EventRepository eventRepository;
+
+    @Autowired
+    private DiscountRepository discountRepository;
+
+    @Named("idsToEvents")
+    public List<Event> idsToEvents(List<Integer> ids) {
+        if (ids == null) {
+            return null;
+        }
+        return ids.stream()
+                .map(id -> eventRepository.findById(id)
+                        .orElseThrow(() -> new RuntimeException("Event not found: " + id)))
+                .collect(Collectors.toList());
+    }
+
+    @Named("idsToDiscounts")
+    public List<Discount> idsToDiscounts(List<Integer> ids) {
+        if (ids == null) {
+            return null;
+        }
+        return ids.stream()
+                .map(id -> discountRepository.findById(id)
+                        .orElseThrow(() -> new RuntimeException("Discount not found: " + id)))
+                .collect(Collectors.toList());
+    }
+
+    @Named("eventsToIds")
+    public List<Integer> eventsToIds(List<Event> events) {
+        if (events == null) {
+            return null;
+        }
+        return events.stream().map(Event::getId).collect(Collectors.toList());
+    }
+
+    @Named("eventsToNames")
+    public List<String> eventsToNames(List<Event> events) {
+        if (events == null) {
+            return null;
+        }
+        return events.stream().map(Event::getDisplayName).collect(Collectors.toList());
+    }
+
+    @Named("discountsToIds")
+    public List<Integer> discountsToIds(List<Discount> discounts) {
+        if (discounts == null) {
+            return null;
+        }
+        return discounts.stream().map(Discount::getId).collect(Collectors.toList());
+    }
 
     @Named("idsToDestinations")
     public List<Destination> idsToDestinations(List<Integer> ids) {

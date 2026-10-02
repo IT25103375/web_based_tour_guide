@@ -17,13 +17,13 @@ public interface DiscountMapper {
     @Mapping(target = "applicablePackagesIds", source = "applicablePackages", qualifiedByName = "packagesToIds")
     DiscountDTO toDto(Discount discount);
 
-    @Mapping(target = "applicablePackages", source = "applicablePackagesIds", qualifiedByName = "idsToPackages")
+    @Mapping(target = "applicablePackages", ignore = true)
     Discount toEntity(DiscountDTO dto);
 
-    @Mapping(target = "applicablePackages", source = "applicablePackagesIds", qualifiedByName = "idsToPackages")
+    @Mapping(target = "applicablePackages", ignore = true)
     CouponCode toCouponCode(DiscountDTO dto);
 
-    @Mapping(target = "applicablePackages", source = "applicablePackagesIds", qualifiedByName = "idsToPackages")
+    @Mapping(target = "applicablePackages", ignore = true)
     TimedDiscount toTimedDiscount(DiscountDTO dto);
 
     List<DiscountDTO> toDtoList(List<Discount> discounts);

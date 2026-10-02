@@ -27,6 +27,7 @@ public class EventControlDTO extends BasicResponse {
     private BigDecimal price;
     private Integer capacity;
     private String description;
+    private double avgRating;
 
     public EventControlDTO() {
         super();
@@ -111,5 +112,13 @@ public class EventControlDTO extends BasicResponse {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public double getAvgRating() {
+        return avgRating;
+    }
+
+    public void setAvgRating(double avgRating) {
+        this.avgRating = avgRating;
     }
 }

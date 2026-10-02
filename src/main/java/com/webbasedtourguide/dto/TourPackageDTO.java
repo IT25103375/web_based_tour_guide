@@ -22,6 +22,11 @@ public class TourPackageDTO {
     private List<String> offeredDestinationNames;
     private List<Integer> offeredDestinationIds;
 
+    private List<String> offeredEventNames;
+    private List<Integer> offeredEventIds;
+
+    private List<Integer> offeredDiscountIds;
+
     public Integer getId() {
         return id;
     }
@@ -84,6 +89,30 @@ public class TourPackageDTO {
 
     public void setOfferedDestinationNames(List<String> offeredDestinationNames) {
         this.offeredDestinationNames = offeredDestinationNames;
+    }
+
+    public List<String> getOfferedEventNames() {
+        return offeredEventNames;
+    }
+
+    public void setOfferedEventNames(List<String> offeredEventNames) {
+        this.offeredEventNames = offeredEventNames;
+    }
+
+    public List<Integer> getOfferedEventIds() {
+        return offeredEventIds;
+    }
+
+    public void setOfferedEventIds(List<Integer> offeredEventIds) {
+        this.offeredEventIds = offeredEventIds;
+    }
+
+    public List<Integer> getOfferedDiscountIds() {
+        return offeredDiscountIds;
+    }
+
+    public void setOfferedDiscountIds(List<Integer> offeredDiscountIds) {
+        this.offeredDiscountIds = offeredDiscountIds;
     }
 
     public double getAvgRating() {

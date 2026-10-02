@@ -1,5 +1,6 @@
 package com.webbasedtourguide.controllers;
 
+import com.webbasedtourguide.dto.BasicResponse;
 import com.webbasedtourguide.dto.DestinationDTO;
 import com.webbasedtourguide.dto.TourPackageDTO;
 import com.webbasedtourguide.exceptions.PackageException;
@@ -30,18 +31,24 @@ class TourPackageController {
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_AGENCYSTAFF', 'ROLE_TOURMANAGER')")
     public ResponseEntity<String> addPackage(@Valid @RequestBody TourPackageDTO request) {
-        return ResponseEntity.ok().body(tourPackageService.addPackage(request).getMessage());
+        return toResponse(tourPackageService.addPackage(request));
     }
 
     @PutMapping
     @PreAuthorize("hasAnyRole('ROLE_AGENCYSTAFF', 'ROLE_TOURMANAGER')")
     public ResponseEntity<String> editPacakge(@Valid @RequestBody TourPackageDTO request) {
-        return ResponseEntity.ok().body(tourPackageService.editPackage(request).getMessage());
+        return toResponse(tourPackageService.editPackage(request));
     }
 
     @DeleteMapping
     @PreAuthorize("hasAnyRole('ROLE_AGENCYSTAFF', 'ROLE_TOURMANAGER')")
     public ResponseEntity<String> removePackage(@Valid @RequestBody TourPackageDTO request) {
         return ResponseEntity.ok().body(tourPackageService.deletePackage(request).getMessage());
+    }
+
+    private ResponseEntity<String> toResponse(BasicResponse response) {
+        return response.isSuccess()
+                ? ResponseEntity.ok().body(response.getMessage())
+                : ResponseEntity.badRequest().body(response.getMessage());
     }
 }

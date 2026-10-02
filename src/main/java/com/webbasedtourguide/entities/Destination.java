@@ -2,6 +2,7 @@ package com.webbasedtourguide.entities;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -13,13 +14,14 @@ public class Destination {
     
     private String displayName;
     private String location;
-    private String destination;
+    private String description;
 
     @ManyToMany(mappedBy = "offeredDestinations")
-    List<TourPackage> offeredPackages;
+    List<TourPackage> offeredPackages = new ArrayList<>();
 
     @OneToMany
-    private List<Rating> ratings;
+    @JoinColumn(name = "destination_id")
+    private List<Rating> ratings = new ArrayList<>();
 
     public Integer getId() {
         return id;
@@ -45,20 +47,20 @@ public class Destination {
         this.location = location;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public List<TourPackage> getOfferedPackages() {
         return offeredPackages;
     }
 
     public void setOfferedPackages(List<TourPackage> offeredPackages) {
         this.offeredPackages = offeredPackages;
-    }
-
-    public String getDestination() {
-        return destination;
-    }
-
-    public void setDestination(String destination) {
-        this.destination = destination;
     }
 
     public void addRating(Rating rating) {

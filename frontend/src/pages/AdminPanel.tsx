@@ -124,7 +124,7 @@ export default function AdminPanel() {
     const [editDialog, setEditDialog] = useState<{ open: boolean; type: TabType; record: Record<string, unknown> | null }>({ open: false, type: "users", record: null });
     const [saved, setSaved] = useState(false);
 
-    const [pkgForm, setPkgForm] = useState({ displayName: "", price: "", duration: "", description: "", capacity: "", destinationIds: [] as number[] });
+    const [pkgForm, setPkgForm] = useState({ displayName: "", price: "", duration: "", description: "", capacity: "", destinationIds: [] as number[], eventIds: [] as number[], discountIds: [] as number[] });
     const [destForm, setDestForm] = useState({ displayName: "", location: "", description: "" });
     const [userForm, setUserForm] = useState({ username: "", email: "", password: "", userType: UserType.Tourist as string });
     const [eventForm, setEventForm] = useState({ eventName: "", location: "", description: "", price: "", capacity: "", startDate: "", endDate: "", applicablePackages: [] as number[] });
@@ -192,7 +192,7 @@ export default function AdminPanel() {
     useEffect(() => {
         loadPackages();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [destinations]);
+    }, [destinations, events, discounts]);
 
     // Single source of truth per entity: how to populate its form from a
     // record, how to save it (add vs edit), how to delete it, and what to
@@ -216,23 +216,28 @@ export default function AdminPanel() {
                     description: p?.description ?? "",
                     capacity: String(p?.capacity ?? ""),
                     destinationIds: p?.offeredDestinationIds ?? [],
+                    eventIds: p?.offeredEventIds ?? [],
+                    discountIds: p?.offeredDiscountIds ?? [],
                 });
             },
             save: (id) => {
                 const payload = {
+                    id: id,
                     displayName: pkgForm.displayName,
                     price: Number(pkgForm.price) || 0,
                     duration: Number(pkgForm.duration) || 0,
                     description: pkgForm.description,
                     capacity: Number(pkgForm.capacity) || 0,
                     offeredDestinationIds: pkgForm.destinationIds,
+                    offeredEventIds: pkgForm.eventIds,
+                    offeredDiscountIds: pkgForm.discountIds,
                 };
                 return id
-                    ? tourPackageAPI.editPackage({ id, ...payload })
+                    ? tourPackageAPI.editPackage(payload)
                     : tourPackageAPI.addPackage(payload);
             },
             remove: (id) => tourPackageAPI.deletePackage(id),
-            reload: loadPackages,
+            reload: () => { loadPackages(); loadEvents(); loadDiscounts(); loadDestinations(); },
         },
         destinations: {
             getId: (r) => (r as { id: number }).id,
@@ -242,12 +247,12 @@ export default function AdminPanel() {
                 description: (r as { description?: string })?.description ?? "",
             }),
             save: (id) => {
-                const dest: Destination = {
+                const dest: Omit<Destination, "avgRating"> = {
                     id: id,
                     displayName: destForm.displayName,
                     location: destForm.location,
                     description: destForm.description,
-                    offeredPackageIds: [],
+                    offeredPackageIds: (editDialog.record as Partial<Destination> | null)?.offeredPackageIds ?? [],
                 };
                 return id
                     ? destinationAPI.editDestination(dest)
@@ -295,6 +300,7 @@ export default function AdminPanel() {
             },
             save: (id) => {
                 const payload = {
+                    eventId: id,
                     eventName: eventForm.eventName,
                     location: eventForm.location,
                     description: eventForm.description,
@@ -304,10 +310,10 @@ export default function AdminPanel() {
                     endDate: eventForm.endDate ? new Date(eventForm.endDate).toISOString() : new Date().toISOString(),
                     applicablePackages: eventForm.applicablePackages,
                 };
-                return id ? eventAPI.editEvent({ eventId: id, ...payload }) : eventAPI.addEvent(payload);
+                return id ? eventAPI.editEvent(payload) : eventAPI.addEvent(payload);
             },
             remove: (id) => eventAPI.deleteEvent(id),
-            reload: loadEvents,
+            reload: () => { loadEvents(); loadPackages(); },
         },
         discounts: {
             getId: (r) => (r as { id: number }).id,
@@ -335,13 +341,14 @@ export default function AdminPanel() {
                     discountTimeType: discountForm.discountTimeType,
                     startDate: discountForm.startDate ? new Date(discountForm.startDate).toISOString() : new Date().toISOString(),
                     endDate: discountForm.endDate ? new Date(discountForm.endDate).toISOString() : new Date().toISOString(),
+                    applicablePackagesIds: discountForm.applicablePackages,
                 };
                 return id
                     ? discountAPI.editDiscount({ id, ...payload })
                     : discountAPI.addDiscount(payload);
             },
             remove: (id) => discountAPI.deleteDiscount(id),
-            reload: loadDiscounts,
+            reload: () => { loadDiscounts(); loadPackages(); },
         },
     };
 
@@ -374,6 +381,15 @@ export default function AdminPanel() {
     const getPackageNames = (ids: number[]) =>
         ids.map((id) => packages?.find((p) => p.id === id)?.displayName).filter(Boolean).join(", ") || "-";
 
+    const getEventNames = (ids: number[] | null) =>
+        (ids ?? []).map((id) => events?.find((e) => e.eventId === id)?.eventName).filter(Boolean).join(", ") || "—";
+
+    const getDiscountLabel = (d: Discount) =>
+        d.couponCode || `${d.discountPriceType === "FIXED" ? `LKR ${d.fixed ?? 0}` : `${d.percentage ?? 0}%`} (timed)`;
+
+    const getDiscountNames = (ids: number[] | null) =>
+        (ids ?? []).map((id) => discounts?.find((d) => d.id === id)).filter((d): d is Discount => !!d).map(getDiscountLabel).join(", ") || "—";
+
     const getDestinationNames = (ids: number[] | null) =>
         (ids ?? []).map((id) => destinations?.find((d) => d.id === id)?.displayName).filter(Boolean).join(", ") || "—";
 
@@ -389,31 +405,41 @@ export default function AdminPanel() {
     const packagesColumns: ColumnDef<TourPackage>[] = [
         { header: "Name", cellSx: truncateSx(160), render: (p) => p.displayName },
         { header: "Destinations", cellSx: truncateSx(200), render: (p) => getDestinationNames(p.offeredDestinationIds) },
+        { header: "Events", cellSx: truncateSx(200), render: (p) => getEventNames(p.offeredEventIds) },
+        { header: "Discounts", cellSx: truncateSx(200), render: (p) => getDiscountNames(p.offeredDiscountIds) },
         { header: "Duration", render: (p) => `${p.duration}d` },
         { header: "Price (LKR)", render: (p) => p.price.toLocaleString() },
         { header: "Capacity", render: (p) => p.capacity },
+        { header: "Rating", render: (p) => p.avgRating ? p.avgRating.toFixed(1) : "—" },
     ];
 
     const eventsColumns: ColumnDef<EventEntity>[] = [
         { header: "Name", render: (e) => e.eventName },
         { header: "Packages", cellSx: truncateSx(160), render: (e) => getPackageNames(e.applicablePackages) },
+        { header: "Location", cellSx: truncateSx(140), render: (e) => e.location || "—" },
         { header: "Start", render: (e) => e.startDate ? e.startDate.slice(0, 10) : "-" },
+        { header: "End", render: (e) => e.endDate ? e.endDate.slice(0, 10) : "-" },
         { header: "Price (LKR)", render: (e) => e.price.toLocaleString() },
-        { header: "Capacity", render: (e) => e.capacity },
+        { header: "Capacity", render: (e) => e.capacity ?? "—" },
+        { header: "Rating", render: (e) => e.avgRating ? e.avgRating.toFixed(1) : "—" },
     ];
 
     const discountsColumns: ColumnDef<Discount>[] = [
         { header: "Code", render: (d) => d.couponCode ? <code style={{ background: "#F0EBE1", padding: "2px 6px", borderRadius: 4 }}>{d.couponCode}</code> : "—" },
+        { header: "Type", render: (d) => d.discountPriceType === "FIXED" ? "Fixed" : "Percentage" },
         { header: "Value", render: (d) => d.discountPriceType === "FIXED" ? `LKR ${(d.fixed ?? 0).toLocaleString()}` : `${d.percentage ?? 0}%` },
         { header: "Min Amount", render: (d) => `LKR ${d.minAmount?.toLocaleString()}` },
         { header: "Applies Via", render: (d) => <Chip label={d.discountTimeType} size="small" color={d.discountTimeType === "TIMED" ? "primary" : "default"} /> },
+        { header: "Packages", cellSx: truncateSx(160), render: (d) => getPackageNames(d.applicablePackagesIds ?? []) },
         { header: "Window", render: (d) => `${d.startDate?.slice(0, 10)} → ${d.endDate?.slice(0, 10)}` },
     ];
 
     const destinationsColumns: ColumnDef<Destination>[] = [
         { header: "Name", cellSx: { fontWeight: 600 }, render: (d) => d.displayName },
         { header: "Location", render: (d) => d.location },
-        { header: "Description", cellSx: truncateSx(240), render: (d) => d.description },
+        { header: "Description", cellSx: truncateSx(240), render: (d) => d.description || "—" },
+        { header: "Packages", cellSx: truncateSx(200), render: (d) => getPackageNames(d.offeredPackageIds ?? []) },
+        { header: "Rating", render: (d) => d.avgRating ? d.avgRating.toFixed(1) : "—" },
     ];
 
     return (
@@ -575,6 +601,49 @@ export default function AdminPanel() {
                                         >
                                             {destinations?.map((d) => (
                                                 <MenuItem key={d.id} value={d.id}>{d.displayName}</MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                    <FormControl size="small" fullWidth>
+                                        <InputLabel>Events</InputLabel>
+                                        <Select
+                                            multiple
+                                            label="Events"
+                                            value={pkgForm.eventIds}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                setPkgForm({ ...pkgForm, eventIds: typeof value === "string" ? [] : (value as number[]) });
+                                            }}
+                                            input={<OutlinedInput label="Events" />}
+                                            renderValue={(selected) => (selected as number[])
+                                                .map((id) => events?.find((ev) => ev.eventId === id)?.eventName)
+                                                .filter(Boolean)
+                                                .join(", ")}
+                                        >
+                                            {events?.map((ev) => (
+                                                <MenuItem key={ev.eventId} value={ev.eventId as number}>{ev.eventName}</MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                    <FormControl size="small" fullWidth>
+                                        <InputLabel>Discounts</InputLabel>
+                                        <Select
+                                            multiple
+                                            label="Discounts"
+                                            value={pkgForm.discountIds}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                setPkgForm({ ...pkgForm, discountIds: typeof value === "string" ? [] : (value as number[]) });
+                                            }}
+                                            input={<OutlinedInput label="Discounts" />}
+                                            renderValue={(selected) => (selected as number[])
+                                                .map((id) => discounts?.find((d) => d.id === id))
+                                                .filter((d): d is Discount => !!d)
+                                                .map(getDiscountLabel)
+                                                .join(", ")}
+                                        >
+                                            {discounts?.map((d) => (
+                                                <MenuItem key={d.id} value={d.id}>{getDiscountLabel(d)}</MenuItem>
                                             ))}
                                         </Select>
                                     </FormControl>

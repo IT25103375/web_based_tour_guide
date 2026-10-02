@@ -13,7 +13,7 @@ export const tourPackageAPI = {
         }
     },
 
-    addPackage: async (tourPackage: Omit<TourPackage, "id">) => {
+    addPackage: async (tourPackage: Omit<TourPackage, "id" | "avgRating" | "offeredDestinationNames" | "offeredEventNames">) => {
         try {
             return await axios.post<TourPackage>(api + "api/pacakge", tourPackage);
         } catch (error) {
@@ -21,7 +21,7 @@ export const tourPackageAPI = {
         }
     },
 
-    editPackage: async (tourPackage: TourPackage) => {
+    editPackage: async (tourPackage: Omit<TourPackage, "avgRating" | "offeredDestinationNames" | "offeredEventNames">) => {
         try {
             return await axios.put<TourPackage>(api + "api/pacakge", tourPackage);
         } catch (error) {
