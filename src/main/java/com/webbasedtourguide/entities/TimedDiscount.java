@@ -1,9 +1,10 @@
 package com.webbasedtourguide.entities;
 
-import com.webbasedtourguide.enums.DiscountPriceType;
 import com.webbasedtourguide.enums.DiscountTimeType;
-import jakarta.persistence.*;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 
+/** Discount that is applied automatically to its packages between startDate and endDate. */
 @Entity
 @DiscriminatorValue("TIMED_DISCOUNT")
 public class TimedDiscount extends Discount {
