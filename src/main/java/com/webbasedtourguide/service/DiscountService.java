@@ -34,7 +34,7 @@ public class DiscountService {
 
     public Discount getDiscount(String couponCode, Integer pkgId) {
         if (couponCode != null && !couponCode.isEmpty()) {
-            return discountRepository.getCouponCodeForPackage(couponCode, pkgId).orElseThrow(
+            return (Discount) discountRepository.getCouponCodeForPackage(couponCode, pkgId).orElseThrow(
                     () -> new EntityNotFoundException("Invalid discount!"));
         }
         else {
@@ -52,7 +52,7 @@ public class DiscountService {
 
         if (discount.getDiscountPriceType() == DiscountPriceType.INVALID ||
                 discount.getDiscountTimeType() == DiscountTimeType.INVALID)
-            throw new DiscountException("Invalid discount");
+            throw new com.webbasedtourguide.service.DiscountException("Invalid discount");
         if (discount.getStartDate().isAfter(Instant.now()) ||
                 discount.getEndDate().isBefore(Instant.now()))
             throw new DiscountException("Discount expired");
