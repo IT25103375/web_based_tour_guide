@@ -90,4 +90,8 @@ public class TourGuide extends AuthEntityDependent {
     public EnumSet<DayOfWeek> getActiveDays() {
         return activeDays;
     }
+
+    public void setActiveDays(EnumSet<DayOfWeek> activeDays) {
+        this.activeDays = activeDays;
+    }
 }

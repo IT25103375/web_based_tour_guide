@@ -75,6 +75,16 @@ public class UserController {
             return ResponseEntity.status(403).build();
     }
 
+    // Only the logged-in guide's own profile is edited; no id is accepted from the client
+    @PutMapping("/guide")
+    @PreAuthorize("hasRole('ROLE_TOURGUIDE')")
+    public ResponseEntity<String> updateGuide(@RequestBody GuideUpdateDTO request) {
+        BasicResponse response = userService.updateGuideProfile(request);
+        return response.isSuccess()
+                ? ResponseEntity.ok(response.getMessage())
+                : ResponseEntity.badRequest().body(response.getMessage());
+    }
+
     @PreAuthorize("hasRole('ROLE_STUDENT')")
     @GetMapping("/logintest")
     public ResponseEntity<Object> testLogin() {

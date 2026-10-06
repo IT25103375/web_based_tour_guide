@@ -1,5 +1,5 @@
 import type {UserType} from "../enums/UserType.ts";
-import {DayOfWeek} from "@/models/DayOfWeek.ts";
+import {DayOfWeek} from "../enums/DayOfWeek.ts";
 import {GuideStatus} from "@/enums/GuideStatus.ts";
 
 // Matches the backend's UserAdminDTO (GET /api/user) used by the admin panel's Users tab.
@@ -23,6 +23,7 @@ export type UserProfileToken = {
     username: string;
     token: string;
     role: UserType;
+    guideId?: number;
     success: boolean;
 }
 
@@ -30,6 +31,7 @@ export type UserProfile = {
     email: string;
     username: string;
     role: UserType;
+    guideId?: number;
 }
 
 export type Guide = {

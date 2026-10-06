@@ -29,6 +29,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import {useAuth} from "@/context/useAuth.tsx";
 import NotificationBell from "./NotificationBell";
+import UserProfilePopover from "@/components/UserProfilePopover.tsx";
 
 const DRAWER_WIDTH = 240;
 
@@ -86,11 +87,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </List>
             <Divider sx={{ borderColor: "rgba(255,255,255,0.12)" }} />
             <Box sx={{ p: 2, display: "flex", alignItems: "center", gap: 1.5 }}>
-                <Avatar sx={{ width: 32, height: 32, bgcolor: "#D4A017", fontSize: "0.8rem" }}>KP</Avatar>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="body2" sx={{ color: "#fff", fontWeight: 500, lineHeight: 1.2 }}>{user?.username}</Typography>
-                    <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.5)", fontSize: "0.7rem" }}>{user?.role}</Typography>
-                </Box>
+                {/*<Avatar sx={{ width: 32, height: 32, bgcolor: "#D4A017", fontSize: "0.8rem" }}>KP</Avatar>*/}
+                {/*<Box sx={{ flex: 1, minWidth: 0 }}>*/}
+                {/*    <Typography variant="body2" sx={{ color: "#fff", fontWeight: 500, lineHeight: 1.2 }}>{user?.username}</Typography>*/}
+                {/*    <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.5)", fontSize: "0.7rem" }}>{user?.role}</Typography>*/}
+                {/*</Box>*/}
+              <UserProfilePopover />
                 <Tooltip title="Sign out">
                     <IconButton size="small" sx={{ color: "rgba(255,255,255,0.5)", "&:hover": { color: "#fff" } }} onClick={() => {
                         logout();

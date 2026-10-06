@@ -3,6 +3,7 @@ package com.webbasedtourguide.service;
 import com.webbasedtourguide.abstracts.AuthEntityDependent;
 import com.webbasedtourguide.auth.JwtUtil;
 import com.webbasedtourguide.dto.BasicResponse;
+import com.webbasedtourguide.dto.GuideUpdateDTO;
 import com.webbasedtourguide.dto.LoginRequest;
 import com.webbasedtourguide.dto.RegisterRequest;
 import com.webbasedtourguide.dto.TokenResponse;
@@ -11,6 +12,7 @@ import com.webbasedtourguide.entities.Admin;
 import com.webbasedtourguide.entities.AuthEntity;
 import com.webbasedtourguide.entities.TourGuide;
 import com.webbasedtourguide.entities.Tourist;
+import com.webbasedtourguide.enums.GuideStatus;
 import com.webbasedtourguide.enums.UserType;
 import com.webbasedtourguide.exceptions.RegisterException;
 import com.webbasedtourguide.exceptions.UserException;
@@ -21,6 +23,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -114,6 +118,8 @@ public class UserService {
             token.setUsername(opAuth.get().getUsername());
             token.setToken(jwtUtil.generateToken(opAuth.get().getEmail()));
             token.setRole(opAuth.get().getUserType().name());
+            if (opAuth.get().getTourGuide() != null)
+                token.setGuideId(opAuth.get().getTourGuide().getId());
         }
 
         return token;
@@ -193,6 +199,37 @@ public class UserService {
         return tourGuideRepository.findByAuthEntity_Email(((AuthEntity) SecurityContextHolder.getContext().
                         getAuthentication().getPrincipal()).getEmail())
                 .orElseThrow(() -> new EntityNotFoundException("No such tour guide"));
+    }
+
+    // A guide can only edit their own profile, and only days, languages and AVAILABLE/UNAVAILABLE status.
+    @Transactional
+    public BasicResponse updateGuideProfile(GuideUpdateDTO request) {
+        TourGuide guide = getCurrentGuide();
+
+        if (request.getStatus() != null && request.getStatus() != guide.getStatus()) {
+            if (guide.getStatus() == GuideStatus.BOOKED)
+                return BasicResponse.badRequest("You cannot change your status while booked");
+            if (request.getStatus() == GuideStatus.BOOKED)
+                return BasicResponse.badRequest("Status can only be set to available or unavailable");
+            guide.setStatus(request.getStatus());
+        }
+
+        if (request.getActiveDays() != null) {
+            EnumSet<DayOfWeek> days = EnumSet.noneOf(DayOfWeek.class);
+            days.addAll(request.getActiveDays());
+            guide.setActiveDays(days);
+        }
+
+        if (request.getLanguages() != null) {
+            guide.setLanguages(request.getLanguages().stream()
+                    .filter(l -> l != null && !l.isBlank())
+                    .map(String::trim)
+                    .distinct()
+                    .toArray(String[]::new));
+        }
+
+        tourGuideRepository.save(guide);
+        return BasicResponse.ok();
     }
 
     @Transactional

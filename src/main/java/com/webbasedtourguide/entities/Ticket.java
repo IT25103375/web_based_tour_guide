@@ -1,5 +1,6 @@
 package com.webbasedtourguide.entities;
 
+import com.webbasedtourguide.abstracts.NotificationObserver;
 import com.webbasedtourguide.enums.TicketStatus;
 import jakarta.persistence.*;
 
@@ -63,6 +64,13 @@ public class Ticket {
     public void addMessage(UserMessage userMessage) {
         messages.add(userMessage);
         addObserver(userMessage.getSender());
+
+        String notifTitle = "Response to ticket T%s".formatted(id);
+        String notifMessage = userMessage.getContent().substring(0,
+                Math.min(userMessage.getContent().length(), Notification.MSG_LENGTH));
+
+        for (AuthEntity authEntity : authEntities)
+            authEntity.getDependent().addNotification(new Notification(notifTitle, notifMessage));
 
         if (status == TicketStatus.AWAITINGRESPONSE && messages.size() > 1)
             status = TicketStatus.ONGOING;

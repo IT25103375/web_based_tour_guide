@@ -5,6 +5,15 @@ public class TokenResponse extends BasicResponse{
     private String username;
     private String token;
     private String role;
+    private Integer guideId;
+
+    public Integer getGuideId() {
+        return guideId;
+    }
+
+    public void setGuideId(Integer guideId) {
+        this.guideId = guideId;
+    }
 
     public String getUsername() {
         return username;
