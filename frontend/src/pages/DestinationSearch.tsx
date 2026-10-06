@@ -32,6 +32,7 @@ interface Destination {
     description: string;
     image: string;
     rating?: number;
+    offeredPackageIds: number[];
 }
 
 export default function DestinationSearch() {
@@ -74,6 +75,7 @@ export default function DestinationSearch() {
                         description: dest.description,
                         image: "",
                         rating: dest.avgRating,
+                        offeredPackageIds: dest.offeredPackageIds ?? [],
                     }))
                 );
             }
@@ -84,12 +86,13 @@ export default function DestinationSearch() {
         ? destinations.filter(
             (d) =>
                 d.displayName.toLowerCase().includes(query.toLowerCase()) ||
-                d.location.toLowerCase().includes(query.toLowerCase())
+                d.location.toLowerCase().includes(query.toLowerCase()) ||
+                (d.description ?? "").toLowerCase().includes(query.toLowerCase())
         )
         : destinations;
 
     const packagesForDestination = selected
-        ? tourPackages.filter((p) => p.destination === selected.displayName)
+        ? tourPackages.filter((p) => p.id != null && selected.offeredPackageIds.includes(p.id))
         : [];
 
     return (
@@ -135,7 +138,7 @@ export default function DestinationSearch() {
                                 }}
                                 onClick={() => setSelected(dest)}
                             >
-                                <CardMedia component="img" height="160" image={dest.image} alt={dest.displayName} />
+                                {dest.image && <CardMedia component="img" height="160" image={dest.image} alt={dest.displayName} />}
                                 <CardContent sx={{ p: 2 }}>
                                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 0.75 }}>
                                         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{dest.displayName}</Typography>
@@ -161,16 +164,23 @@ export default function DestinationSearch() {
                     {selected && (
                         <>
                             <Box sx={{ position: "relative" }}>
-                                <Box
-                                    component="img"
-                                    src={selected.image}
-                                    alt={selected.displayName}
-                                    sx={{ width: "100%", height: 220, objectFit: "cover", display: "block" }}
-                                />
+                                {selected.image && (
+                                    <Box
+                                        component="img"
+                                        src={selected.image}
+                                        alt={selected.displayName}
+                                        sx={{ width: "100%", height: 220, objectFit: "cover", display: "block" }}
+                                    />
+                                )}
                                 <IconButton
                                     size="small"
                                     onClick={() => setSelected(null)}
-                                    sx={{ position: "absolute", top: 8, right: 8, bgcolor: "rgba(0,0,0,0.5)", color: "#fff", "&:hover": { bgcolor: "rgba(0,0,0,0.7)" } }}
+                                    sx={{
+                                        position: "absolute", top: 8, right: 8,
+                                        bgcolor: selected.image ? "rgba(0,0,0,0.5)" : "action.hover",
+                                        color: selected.image ? "#fff" : "text.primary",
+                                        "&:hover": { bgcolor: selected.image ? "rgba(0,0,0,0.7)" : "action.selected" },
+                                    }}
                                 >
                                     <Close fontSize="small" />
                                 </IconButton>
@@ -178,7 +188,7 @@ export default function DestinationSearch() {
                             <DialogTitle sx={{ pb: 1 }}>
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                                     <LocationOn sx={{ color: "primary.main" }} />
-                                    <Typography variant="h6" sx={{ fontWeight: 700 }}>{selected.description}</Typography>
+                                    <Typography variant="h6" sx={{ fontWeight: 700 }}>{selected.displayName}</Typography>
                                     <Chip label={selected.location} size="small" variant="outlined" />
                                 </Box>
                             </DialogTitle>
@@ -225,8 +235,10 @@ export default function DestinationSearch() {
                                                 }}
                                                 onClick={() => { setSelected(null); navigate("/booking"); }}
                                             >
-                                                <Box component="img" src={pkg.image} alt={pkg.name}
-                                                     sx={{ width: 56, height: 42, borderRadius: 1, objectFit: "cover", flexShrink: 0 }} />
+                                                {pkg.image && (
+                                                    <Box component="img" src={pkg.image} alt={pkg.name}
+                                                         sx={{ width: 56, height: 42, borderRadius: 1, objectFit: "cover", flexShrink: 0 }} />
+                                                )}
                                                 <Box sx={{ flex: 1 }}>
                                                     <Typography variant="body2" sx={{ fontWeight: 600 }}>{pkg.name}</Typography>
                                                     <Typography variant="caption" color="text.secondary">{pkg.duration}</Typography>

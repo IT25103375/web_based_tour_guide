@@ -18,7 +18,7 @@ public interface TourGuideRepository extends CrudRepository<TourGuide, Integer> 
 
     // Using bitmask to represent days of week and their combinations, monday = 1, tuesday = 2, wednesday = 4 etc.
     @Query(
-            value = "SELECT * FROM tour_guide WHERE status = 'AVAILABLE' AND BITAND(active_days, CAST(?1 AS INT)) <> 0",
+            value = "SELECT * FROM tour_guide WHERE status <> 'UNAVAILABLE' AND BITAND(active_days, CAST(?1 AS INT)) <> 0",
             nativeQuery = true)
     List<TourGuide> findAvailableGuides(@Param("day") int day);
 

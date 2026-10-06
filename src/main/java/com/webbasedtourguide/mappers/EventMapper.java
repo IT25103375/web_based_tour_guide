@@ -13,6 +13,7 @@ import java.util.List;
 public interface EventMapper {
 
     @Mapping(target = "eventId", source = "id")
+    @Mapping(target = "avgRating", expression = "java(event.getRatingAvg())")
 //    @Mapping(target = "pkgId", source = "tourPackage.pkgId")
 //    @Mapping(target = "packageName", source = "tourPackage.displayName")
     EventDetailsDTO toDto(Event event);

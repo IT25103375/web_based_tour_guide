@@ -3,10 +3,13 @@ package com.webbasedtourguide.service;
 import com.webbasedtourguide.dto.RatingDTO;
 import com.webbasedtourguide.dto.TicketDTO;
 import com.webbasedtourguide.dto.UserMessageDTO;
+import com.webbasedtourguide.entities.AuthEntity;
 import com.webbasedtourguide.entities.Rating;
 import com.webbasedtourguide.entities.Ticket;
 import com.webbasedtourguide.entities.UserMessage;
 import com.webbasedtourguide.enums.RatingType;
+import com.webbasedtourguide.enums.TicketStatus;
+import com.webbasedtourguide.enums.UserType;
 import com.webbasedtourguide.exceptions.UserException;
 import com.webbasedtourguide.mappers.ServiceMapper;
 import com.webbasedtourguide.repositories.RatingRepository;
@@ -58,22 +61,43 @@ public class SupportService {
 
         Ticket ticket = ticketRepository.findById((long) id)
                 .orElseThrow(() -> new EntityNotFoundException("Ticket not found"));
-        ticket.addMessage(new UserMessage(userService.getCurrentUser(), request.getFirstMessage().getContent()));
+
+        AuthEntity current = userService.getCurrentUser();
+        if (!isAdmin(current) && !ticket.hasObserver(current))
+            throw new UserException("Unauthorized access");
+        if (ticket.getStatus() == TicketStatus.SOLVED)
+            throw new UserException("This ticket has been solved");
+
+        ticket.addMessage(new UserMessage(current, request.getFirstMessage().getContent()));
 
         ticketRepository.save(ticket);
+    }
+
+    private static boolean isAdmin(AuthEntity user) {
+        return user.getUserType() == UserType.AGENCYSTAFF || user.getUserType() == UserType.TOURMANAGER;
+    }
+
+    // Summary for list views: id, title, status and the opening message (which carries the sender)
+    private TicketDTO toSummaryDto(Ticket ticket) {
+        TicketDTO dto = new TicketDTO();
+        dto.setId(Math.toIntExact(ticket.getId()));
+        dto.setTitle(ticket.getTitle());
+        dto.setStatus(ticket.getStatus());
+        dto.addMessage(serviceMapper.toDto(ticket.getFirstMessage()));
+        return dto;
     }
 
     @Transactional
     public List<TicketDTO> getTickets() {
         return ticketRepository.getTicketsSubscribedTo(userService.getCurrentUser().getId()).
-                stream().map(ticket -> {
-                    TicketDTO dto = new TicketDTO();
-                    dto.setId(Math.toIntExact(ticket.getId()));
-                    dto.setTitle(ticket.getTitle());
-                    dto.setStatus(ticket.getStatus());
-                    dto.addMessage(serviceMapper.toDto(ticket.getFirstMessage()));
-                    return dto;
-                }).collect(Collectors.toList());
+                stream().map(this::toSummaryDto).collect(Collectors.toList());
+    }
+
+    // Admin view: every ticket from every user, newest first
+    @Transactional
+    public List<TicketDTO> getAllTickets() {
+        return ticketRepository.findAllByOrderByIdDesc().stream()
+                .map(this::toSummaryDto).collect(Collectors.toList());
     }
 
     @Transactional
@@ -81,7 +105,8 @@ public class SupportService {
         Ticket ticket = ticketRepository.findById((long) id)
                 .orElseThrow(() -> new EntityNotFoundException("Ticket not found"));
 
-        if (!ticket.hasObserver(userService.getCurrentUser()))
+        AuthEntity current = userService.getCurrentUser();
+        if (!isAdmin(current) && !ticket.hasObserver(current))
             throw new UserException("Unauthorized access");
 
         return serviceMapper.toDto(ticket);
@@ -92,6 +117,8 @@ public class SupportService {
 
         Ticket ticket = ticketRepository.findById((long) ticketId)
                 .orElseThrow(() -> new EntityNotFoundException("Ticket not found"));
+        if (ticket.getStatus() == TicketStatus.SOLVED)
+            throw new UserException("This ticket is already solved");
         ticket.solveTicket();
 
         ticketRepository.save(ticket);

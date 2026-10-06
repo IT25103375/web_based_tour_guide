@@ -9,7 +9,9 @@ import com.webbasedtourguide.entities.Rating;
 import com.webbasedtourguide.entities.TourPackage;
 import com.webbasedtourguide.exceptions.EventException;
 import com.webbasedtourguide.exceptions.PackageException;
+import com.webbasedtourguide.enums.BookingStatus;
 import com.webbasedtourguide.mappers.EventMapper;
+import com.webbasedtourguide.repositories.BookingRepository;
 import com.webbasedtourguide.repositories.EventRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -26,11 +28,14 @@ public class EventService {
     private final EventRepository eventRepository;
     private final TourPackageService tourPackageService;
     private final EventMapper eventMapper;
+    private final BookingRepository bookingRepository;
 
-    EventService(EventRepository eventRepository, TourPackageService tourPackageService, EventMapper eventMapper) {
+    EventService(EventRepository eventRepository, TourPackageService tourPackageService, EventMapper eventMapper,
+                 BookingRepository bookingRepository) {
         this.eventRepository = eventRepository;
         this.tourPackageService = tourPackageService;
         this.eventMapper = eventMapper;
+        this.bookingRepository = bookingRepository;
     }
 
     private String validate(EventControlDTO r, boolean creating) {
@@ -141,7 +146,17 @@ public class EventService {
     }
 
     public List<EventDetailsDTO> getValidEvents(Integer pkgId) {
-        return eventMapper.toDtoList(eventRepository.getValidEvents(pkgId, Instant.now()));
+        List<Event> events = eventRepository.getValidEvents(pkgId, Instant.now());
+        List<EventDetailsDTO> dtos = eventMapper.toDtoList(events);
+        for (int i = 0; i < events.size(); i++) {
+            Event event = events.get(i);
+            dtos.get(i).setPkgId(pkgId);
+            if (event.getCapacity() != null) {
+                long taken = bookingRepository.countByEvent_IdAndStatusNot(event.getId(), BookingStatus.CANCELLED);
+                dtos.get(i).setAvailableSpots((int) Math.max(0, event.getCapacity() - taken));
+            }
+        }
+        return dtos;
     }
 
     @Transactional

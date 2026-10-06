@@ -4,6 +4,7 @@ import com.webbasedtourguide.dto.RatingDTO;
 import com.webbasedtourguide.dto.TicketDTO;
 import com.webbasedtourguide.enums.RatingType;
 import com.webbasedtourguide.service.SupportService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,7 +30,9 @@ class SupportController {
         supportService.respondToTicket(id, request);
     }
 
+    // Only staff can close a ticket
     @PatchMapping("/ticket/{id}/solve")
+    @PreAuthorize("hasAnyRole('ROLE_AGENCYSTAFF', 'ROLE_TOURMANAGER')")
     public void solveTicket(@PathVariable int id) {
         supportService.solveTicket(id);
     }
@@ -37,6 +40,13 @@ class SupportController {
     @GetMapping("/ticket")
     public List<TicketDTO> getUserTickets() {
         return supportService.getTickets();
+    }
+
+    // Admin support desk: all tickets from all users
+    @GetMapping("/ticket/all")
+    @PreAuthorize("hasAnyRole('ROLE_AGENCYSTAFF', 'ROLE_TOURMANAGER')")
+    public List<TicketDTO> getAllTickets() {
+        return supportService.getAllTickets();
     }
 
     @GetMapping("/ticket/{id}")

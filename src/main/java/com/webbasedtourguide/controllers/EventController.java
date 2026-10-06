@@ -9,6 +9,7 @@ import com.webbasedtourguide.exceptions.TourException;
 import com.webbasedtourguide.exceptions.UserException;
 import com.webbasedtourguide.service.BookingService;
 import com.webbasedtourguide.service.EventService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,7 @@ class EventController {
     }
 
     @GetMapping()
-    public List<EventDetailsDTO> getAllEventsByPackageId(@RequestBody Integer pkgId) {
+    public List<EventDetailsDTO> getAllEventsByPackageId(@RequestParam Integer pkgId) {
         return eventService.getValidEvents(pkgId);
     }
 
@@ -38,7 +39,7 @@ class EventController {
     public ResponseEntity<String> registerEvent(EventDetailsDTO request) {
         try {
             return ResponseEntity.ok().body(bookingService.registerForEvent(request).getMessage());
-        } catch (TourException | UserException e) {
+        } catch (TourException | UserException | EntityNotFoundException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

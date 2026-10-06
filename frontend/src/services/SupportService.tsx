@@ -15,6 +15,15 @@ export const supportAPI = {
         }
     },
 
+    // Admin only: every ticket from every user
+    getAllTickets: async () => {
+        try {
+            return await axios.get<Ticket[]>(api + "api/support/ticket/all");
+        } catch (error) {
+            handleError(error);
+        }
+    },
+
     getTicket: async (id: number) => {
         try {
             return await axios.get<Ticket>(api + `api/support/ticket/${id}`);

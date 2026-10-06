@@ -1,7 +1,7 @@
 package com.webbasedtourguide.entities;
 
-import com.webbasedtourguide.abstracts.NotificationObserver;
 import com.webbasedtourguide.enums.TicketStatus;
+import com.webbasedtourguide.enums.UserType;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -65,12 +65,15 @@ public class Ticket {
         messages.add(userMessage);
         addObserver(userMessage.getSender());
 
-        String notifTitle = "Response to ticket T%s".formatted(id);
+        // Notify subscribed people
+        String notifTitle = "Reply to ticket T%s".formatted(id);
         String notifMessage = userMessage.getContent().substring(0,
                 Math.min(userMessage.getContent().length(), Notification.MSG_LENGTH));
-
-        for (AuthEntity authEntity : authEntities)
+        for (AuthEntity authEntity : authEntities) {
+            if (authEntity.getUserType() == UserType.AGENCYSTAFF || authEntity.getUserType() == UserType.TOURMANAGER)
+                continue;
             authEntity.getDependent().addNotification(new Notification(notifTitle, notifMessage));
+        }
 
         if (status == TicketStatus.AWAITINGRESPONSE && messages.size() > 1)
             status = TicketStatus.ONGOING;
@@ -96,11 +99,13 @@ public class Ticket {
         String notifMessage = messages.getLast().getContent().substring(0,
                 Math.min(messages.getLast().getContent().length(), Notification.MSG_LENGTH));
 
-        // Remove all dependents after sending solved notification
-        authEntities.removeIf(authEntity -> {
+        // Notify the people who raised/followed the ticket (not staff, who closed it) but keep them
+        // attached so the solved ticket stays visible in their history
+        for (AuthEntity authEntity : authEntities) {
+            if (authEntity.getUserType() == UserType.AGENCYSTAFF || authEntity.getUserType() == UserType.TOURMANAGER)
+                continue;
             authEntity.getDependent().addNotification(new Notification(notifTitle, notifMessage));
-            return true;
-        });
+        }
     }
 
     public boolean hasObserver(AuthEntity authEntity) {

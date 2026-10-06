@@ -23,6 +23,7 @@ import {
     Logout,
     TravelExplore,
     ConfirmationNumber,
+    Explore,
     Menu as MenuIcon,
 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -37,14 +38,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     const navigate = useNavigate();
     const location = useLocation();
     const [mobileOpen, setMobileOpen] = useState(false);
-    const {logout, user, isAdmin} = useAuth();
+    const {logout, user, isAdmin, isTourist} = useAuth();
 
+    // Only tourists can book; guides and admins get a read-only package viewer
     const navItems = [
         { label: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-        { label: "Book a Tour", icon: <BookOnline />, path: "/booking" },
-        { label: "Book Events", icon: <Event />, path: "/events" },
+        isTourist()
+            ? { label: "Book a Tour", icon: <BookOnline />, path: "/booking" }
+            : { label: "Tour Packages", icon: <Explore />, path: "/booking" },
+        isTourist() && { label: "Book Events", icon: <Event />, path: "/events" },
         { label: "Search Destinations", icon: <Search />, path: "/destinations" },
-        { label: "Support Tickets", icon: <ConfirmationNumber />, path: "/tickets" },
+        { label: isAdmin() ? "Support Desk" : "Support Tickets", icon: <ConfirmationNumber />, path: "/tickets" },
         isAdmin() && { label: "Admin Panel", icon: <AdminPanelSettings />, path: "/admin" },
     ].filter((item): item is {label: string, icon: any, path: string} => Boolean(item));
 

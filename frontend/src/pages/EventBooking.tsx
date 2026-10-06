@@ -18,182 +18,187 @@ import {
     Chip,
     Divider,
 } from "@mui/material";
-import { Close, CheckCircle, CalendarMonth, Group } from "@mui/icons-material";
+import { Close, CheckCircle, CalendarMonth, Group, Place } from "@mui/icons-material";
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import { eventAPI } from "../services/EventService";
-import {bookingAPI} from "@/services/BookingService.tsx";
-import {Booking} from "@/models/Booking.ts";
-import {BookingStatus} from "@/enums/BookingStatus.ts";
+import { bookingAPI } from "@/services/BookingService.tsx";
+import type { Booking } from "@/models/Booking.ts";
+import type { EventDetails } from "@/models/EventDetails.ts";
 import RatingSection from "@/components/RatingSection.tsx";
 import AverageRating from "@/components/AverageRating.tsx";
 
-interface EventItem {
-    id: number | undefined;
-    packageId: number;
-    displayName: string;
-    description: string;
-    price: number;
-    capacity: number;
-    date: any;
-    rating?: number;
-}
+const formatDate = (iso: string) => new Date(iso).toLocaleDateString();
 
 export default function EventBooking() {
-    const [selectedPackageId, setSelectedPackageId] = useState<number | "">("");
-    const [filteredEvents, setFilteredEvents] = useState<EventItem[]>([]);
-    const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null);
     const [bookings, setBookings] = useState<Booking[]>([]);
+    const [bookingsLoaded, setBookingsLoaded] = useState(false);
+    const [selectedBookingId, setSelectedBookingId] = useState<number | "">("");
+    const [events, setEvents] = useState<EventDetails[]>([]);
+    const [selectedEvent, setSelectedEvent] = useState<EventDetails | null>(null);
+    const [registering, setRegistering] = useState(false);
     const [confirmed, setConfirmed] = useState(false);
 
-    // Load real events for the selected package; fall back to mock data on
-    // failure so the page still demos even if the API is unreachable.
+    // Events can only be added to an active (booked) tour
+    const activeBookings = bookings.filter((b) => b.status === "BOOKED");
+    const selectedBooking = activeBookings.find((b) => b.bookingId === selectedBookingId) ?? null;
+
+    const loadBookings = () =>
+        bookingAPI.getMyBookings().then((res) => {
+            if (Array.isArray(res?.data)) setBookings(res.data);
+            setBookingsLoaded(true);
+        });
+
+    const loadEvents = (packageId: number) =>
+        eventAPI.getEventsByPackage(packageId).then((res) => {
+            // Always replace the list, so switching to a package without events clears the old ones
+            setEvents(Array.isArray(res?.data) ? res.data : []);
+        });
+
     useEffect(() => {
-        if (!selectedPackageId) {
-            setFilteredEvents([]);
+        void loadBookings();
+    }, []);
+
+    useEffect(() => {
+        if (!selectedBooking) {
+            setEvents([]);
             return;
         }
-        eventAPI.getEventsByPackage(selectedPackageId).then((res) => {
-            const data = res?.data;
-            if (Array.isArray(data) && data.length > 0) {
-                setFilteredEvents(
-                    data.map((ev) => ({
-                        id: ev.eventId,
-                        packageId: selectedPackageId,
-                        displayName: ev.eventName,
-                        description: ev.description,
-                        price: ev.price,
-                        date: ev.startDate.toString() + " - " + ev.endDate.toString(),
-                        capacity: ev.capacity,
-                        rating: ev.avgRating,
-                    }))
-                );
-            }
-        });
-    }, [selectedPackageId]);
+        void loadEvents(selectedBooking.packageId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedBookingId]);
 
     const handleClose = () => {
         setSelectedEvent(null);
         setConfirmed(false);
     };
 
-    const loadBookings = () => {
-        bookingAPI.getMyBookings().then((res) => {
-            const data = res?.data;
-            if (Array.isArray(data)) {
-                setBookings(
-                    data.map((booking: any) => ({
-                        bookingId: booking.bookingId,
-                        packageId: booking.packageId,
-                        packageName: booking.packageName,
-                        bookerId: booking.bookerId,
-                        eventId: booking.eventId,
-                        guideId: booking.guideId,
-                        guideName: booking.guideName,
-                        discountId: booking.discountId,
-                        status: booking.status,
-                        finalPrice: booking.finalPrice,
-                        bookedDate: booking.bookedDate,
-                    }))
-                );
-            }
-        });
+    const handleRegister = async () => {
+        if (!selectedEvent || !selectedBooking) return;
+        setRegistering(true);
+        // handleError already toasts failures and returns undefined, so only confirm on success
+        const res = await eventAPI.registerEvent(selectedEvent.eventId, selectedBooking.bookingId);
+        setRegistering(false);
+        if (res) {
+            setConfirmed(true);
+            // Refresh so the registration and the remaining spots show up
+            void loadBookings();
+            void loadEvents(selectedBooking.packageId);
+        }
     };
 
     return (
         <Layout>
             <Box sx={{ p: { xs: 2, sm: 3 } }}>
                 <Box sx={{ mb: 3 }}>
-                    <Typography variant="h5" sx={{ fontWeight: 700 }}>Book an EventEntity</Typography>
+                    <Typography variant="h5" sx={{ fontWeight: 700 }}>Book an Event</Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Select a tour package first to see its available events
+                        Select one of your bookings to see the events offered with its tour package
                     </Typography>
                 </Box>
 
                 <FormControl sx={{ mb: 3, minWidth: 320 }} size="small">
-                    <InputLabel>Select Tour Package</InputLabel>
+                    <InputLabel>Select Booking</InputLabel>
                     <Select
-                        label="Select Tour Package"
-                        value={selectedPackageId}
-                        onChange={(e) => setSelectedPackageId(e.target.value as number)}
+                        label="Select Booking"
+                        value={selectedBookingId}
+                        onChange={(e) => setSelectedBookingId(e.target.value as number)}
                     >
-                        {bookings.map((pkg) => (
-                            <MenuItem key={pkg.packageId} value={pkg.packageId}>
-                                {pkg.packageName}
+                        {activeBookings.map((b) => (
+                            <MenuItem key={b.bookingId} value={b.bookingId}>
+                                {b.packageName} · {formatDate(b.bookedDate)}{b.eventId ? " (event registered)" : ""}
                             </MenuItem>
                         ))}
                     </Select>
                 </FormControl>
 
-                {bookings.length > 0 && !selectedPackageId && (
-                    <Alert severity="info" sx={{ maxWidth: 480 }}>
-                        Choose a tour package above to see its associated events.
-                    </Alert>
-                )}
-
-                {bookings.length > 0 && selectedPackageId && filteredEvents.length === 0 && (
-                    <Alert severity="warning" sx={{ maxWidth: 480 }}>
-                        No events are currently available for this package.
-                    </Alert>
-                )}
-
-                {bookings.length < 1 && (
+                {bookingsLoaded && activeBookings.length < 1 && (
                     <Alert severity="warning" sx={{ maxWidth: 480 }}>
                         Book a tour first to register for an event
                     </Alert>
                 )}
 
+                {activeBookings.length > 0 && !selectedBooking && (
+                    <Alert severity="info" sx={{ maxWidth: 480 }}>
+                        Choose a booking above to see the events available for it.
+                    </Alert>
+                )}
+
+                {selectedBooking && events.length === 0 && (
+                    <Alert severity="warning" sx={{ maxWidth: 480 }}>
+                        No events are currently available for this package.
+                    </Alert>
+                )}
+
                 <Grid container spacing={2}>
-                    {filteredEvents.map((ev) => (
-                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={ev.id}>
-                            <Card
-                                elevation={0}
-                                sx={{
-                                    border: "1px solid #E8E0D5",
-                                    height: "100%",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    transition: "box-shadow 0.2s",
-                                    "&:hover": { boxShadow: "0 4px 16px rgba(0,0,0,0.1)" },
-                                }}
-                            >
-                                <CardContent sx={{ flex: 1, p: 2.5 }}>
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
-                                        <Chip label="EventEntity" size="small" color="secondary" />
-                                        <Typography variant="h6" sx={{ fontWeight: 700, color: "primary.main" }}>
-                                            LKR {ev.price.toLocaleString()}
-                                        </Typography>
-                                    </Box>
-                                    <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>{ev.displayName}</Typography>
-                                    <Box sx={{ mb: 1 }}><AverageRating value={ev.rating} /></Box>
-                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: "0.82rem" }}>
-                                        {ev.description}
-                                    </Typography>
-                                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75, mb: 2 }}>
-                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                            <CalendarMonth sx={{ fontSize: 16, color: "text.secondary" }} />
-                                            <Typography variant="caption" color="text.secondary">{ev.date}</Typography>
-                                        </Box>
-                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                                            <Group sx={{ fontSize: 16, color: "text.secondary" }} />
-                                            <Typography variant="caption" color="text.secondary">
-                                                Up to {ev.capacity} guests
+                    {events.map((ev) => {
+                        const registered = selectedBooking?.eventId === ev.eventId;
+                        const full = ev.availableSpots === 0;
+                        return (
+                            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={ev.eventId}>
+                                <Card
+                                    elevation={0}
+                                    sx={{
+                                        border: "1px solid #E8E0D5",
+                                        height: "100%",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        transition: "box-shadow 0.2s",
+                                        "&:hover": { boxShadow: "0 4px 16px rgba(0,0,0,0.1)" },
+                                    }}
+                                >
+                                    <CardContent sx={{ flex: 1, p: 2.5 }}>
+                                        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
+                                            <Chip label="Event" size="small" color="secondary" />
+                                            <Typography variant="h6" sx={{ fontWeight: 700, color: "primary.main" }}>
+                                                LKR {ev.price.toLocaleString()}
                                             </Typography>
                                         </Box>
-                                    </Box>
-                                    <Button variant="contained" size="small" fullWidth onClick={() => setSelectedEvent(ev)}>
-                                        Book EventEntity
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    ))}
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>{ev.displayName}</Typography>
+                                        <Box sx={{ mb: 1 }}><AverageRating value={ev.avgRating} /></Box>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: "0.82rem" }}>
+                                            {ev.description}
+                                        </Typography>
+                                        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75, mb: 2 }}>
+                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                <Place sx={{ fontSize: 16, color: "text.secondary" }} />
+                                                <Typography variant="caption" color="text.secondary">{ev.location}</Typography>
+                                            </Box>
+                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                <CalendarMonth sx={{ fontSize: 16, color: "text.secondary" }} />
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {formatDate(ev.startDate)} – {formatDate(ev.endDate)}
+                                                </Typography>
+                                            </Box>
+                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                <Group sx={{ fontSize: 16, color: "text.secondary" }} />
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {ev.availableSpots != null
+                                                        ? `${ev.availableSpots} of ${ev.capacity} spots left`
+                                                        : "No guest limit"}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                        <Button
+                                            variant="contained"
+                                            size="small"
+                                            fullWidth
+                                            disabled={registered || full}
+                                            onClick={() => setSelectedEvent(ev)}
+                                        >
+                                            {registered ? "Registered" : full ? "Full" : "Register"}
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        );
+                    })}
                 </Grid>
 
-                {/* Booking confirmation dialog */}
+                {/* Registration confirmation dialog */}
                 <Dialog open={!!selectedEvent} onClose={handleClose} maxWidth="sm" fullWidth>
                     <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        {confirmed ? "Booking Confirmed" : "Confirm EventEntity Booking"}
+                        {confirmed ? "Registration Confirmed" : "Confirm Event Registration"}
                         <IconButton size="small" onClick={handleClose}><Close fontSize="small" /></IconButton>
                     </DialogTitle>
                     <DialogContent dividers>
@@ -205,19 +210,28 @@ export default function EventBooking() {
                                         <Typography variant="caption" color="text.secondary">{selectedEvent.description}</Typography>
                                     </Box>
                                 )}
+                                {selectedBooking?.eventId && selectedBooking.eventId !== selectedEvent?.eventId && (
+                                    <Alert severity="info">This will replace the event already registered on this booking.</Alert>
+                                )}
                                 <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
                                     <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                                        <Typography variant="body2" color="text.secondary">Date</Typography>
-                                        <Typography variant="body2">{selectedEvent?.date}</Typography>
+                                        <Typography variant="body2" color="text.secondary">Booking</Typography>
+                                        <Typography variant="body2">{selectedBooking?.packageName}</Typography>
                                     </Box>
                                     <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                                        <Typography variant="body2" color="text.secondary">Capacity</Typography>
-                                        <Typography variant="body2">{selectedEvent?.capacity} guests</Typography>
+                                        <Typography variant="body2" color="text.secondary">Date</Typography>
+                                        <Typography variant="body2">
+                                            {selectedEvent && `${formatDate(selectedEvent.startDate)} – ${formatDate(selectedEvent.endDate)}`}
+                                        </Typography>
+                                    </Box>
+                                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                                        <Typography variant="body2" color="text.secondary">Location</Typography>
+                                        <Typography variant="body2">{selectedEvent?.location}</Typography>
                                     </Box>
                                 </Box>
                                 <Divider />
                                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Total</Typography>
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Price</Typography>
                                     <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "primary.main" }}>
                                         LKR {selectedEvent?.price.toLocaleString()}
                                     </Typography>
@@ -226,28 +240,21 @@ export default function EventBooking() {
                         ) : (
                             <Box sx={{ textAlign: "center", py: 3 }}>
                                 <CheckCircle sx={{ fontSize: 64, color: "success.main", mb: 2 }} />
-                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>EventEntity Booked!</Typography>
+                                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Event Registered!</Typography>
                                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                                    You're registered for <strong>{selectedEvent?.displayName}</strong> on <strong>{selectedEvent?.date}</strong>.
+                                    You're registered for <strong>{selectedEvent?.displayName}</strong>
+                                    {selectedEvent && <> ({formatDate(selectedEvent.startDate)} – {formatDate(selectedEvent.endDate)})</>}.
                                 </Typography>
-                                <Chip label={`Ref #EV-${String(Date.now()).slice(-5)}`} color="primary" />
+                                <Chip label={`Booking #${selectedBooking?.bookingId ?? ""}`} color="primary" />
                             </Box>
                         )}
-                        {selectedEvent && <RatingSection type="EVENT" typeId={selectedEvent.id} />}
+                        {selectedEvent && <RatingSection type="EVENT" typeId={selectedEvent.eventId} />}
                     </DialogContent>
                     <DialogActions sx={{ px: 3, pb: 2 }}>
                         <Button onClick={handleClose} color="inherit">{confirmed ? "Close" : "Cancel"}</Button>
                         {!confirmed && (
-                            <Button
-                                variant="contained"
-                                onClick={() => {
-                                    if (selectedEvent) {
-                                        eventAPI.registerEvent(selectedEvent.id, selectedEvent.packageId);
-                                    }
-                                    setConfirmed(true);
-                                }}
-                            >
-                                Pay LKR {selectedEvent?.price.toLocaleString()}
+                            <Button variant="contained" onClick={handleRegister} disabled={registering}>
+                                Register · LKR {selectedEvent?.price.toLocaleString()}
                             </Button>
                         )}
                     </DialogActions>

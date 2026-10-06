@@ -1,6 +1,7 @@
 import axios from "axios";
 import { handleError } from "../helpers/ErrorHandler";
-import type { BookingList } from "../models/Booking.ts";
+import type { Booking, BookingList } from "../models/Booking.ts";
+import type { PriceQuote } from "../models/PriceQuote.ts";
 
 const api = "http://localhost:8090/";
 
@@ -20,8 +21,20 @@ export const bookingAPI = {
             form.append("packageId", String(packageId));
             form.append("bookedDate", new Date(bookedDate).toISOString());
             if (couponCode) form.append("couponCode", couponCode);
-            return await axios.post<string>(api + "api/booking/book", form, {
+            return await axios.post<Booking>(api + "api/booking/book", form, {
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            });
+        } catch (error) {
+            handleError(error);
+        }
+    },
+
+    // Price preview, including any timed discount or the given coupon. Errors (e.g. an invalid
+    // coupon) come back as a 400 with a message, which handleError toasts.
+    getQuote: async (packageId: number, couponCode?: string) => {
+        try {
+            return await axios.get<PriceQuote>(api + "api/booking/quote", {
+                params: { packageId, couponCode: couponCode || undefined },
             });
         } catch (error) {
             handleError(error);

@@ -36,20 +36,46 @@ public class DiscountService {
         this.tourPackageService = tourPackageService;
     }
 
-    public Discount getDiscount(String couponCode, Integer pkgId) {
-        if (couponCode != null && !couponCode.isEmpty()) {
-            return discountRepository.getCouponCodeForPackage(couponCode, pkgId).orElseThrow(
+    /**
+     * Picks the discount for a booking: the named coupon if one was entered (errors if it is invalid,
+     * expired or the price is below its minimum), otherwise the running timed discount that saves the
+     * most. Returns null when no discount applies.
+     */
+    public Discount getDiscount(String couponCode, Integer pkgId, BigDecimal price) {
+        if (couponCode != null && !couponCode.isBlank()) {
+            Discount coupon = discountRepository.getCouponCodeForPackage(couponCode.trim(), pkgId).orElseThrow(
                     () -> new EntityNotFoundException("Invalid discount!"));
-        }
-        else {
-            List<TimedDiscount> discounts = discountRepository.getAvailableTimedDiscounts(pkgId);
-
-            if (!discounts.isEmpty())
-                // TODO: Handle multiple discounts existing
-                return discounts.getFirst();
+            if (belowMinimum(coupon, price))
+                throw new DiscountException("Minimum booking amount of LKR %s required"
+                        .formatted(coupon.getMinAmount().stripTrailingZeros().toPlainString()));
+            return coupon;
         }
 
-        return null;
+        Discount best = null;
+        BigDecimal bestPrice = price;
+        for (TimedDiscount timed : discountRepository.getAvailableTimedDiscounts(pkgId, Instant.now())) {
+            if (belowMinimum(timed, price)) continue;
+            try {
+                BigDecimal discounted = applyDiscount(price, timed);
+                if (discounted.compareTo(bestPrice) < 0) {
+                    best = timed;
+                    bestPrice = discounted;
+                }
+            } catch (DiscountException ignored) {
+                // A malformed timed discount must not block bookings, just skip it
+            }
+        }
+        return best;
+    }
+
+    private boolean belowMinimum(Discount discount, BigDecimal price) {
+        return discount.getMinAmount() != null && price.compareTo(discount.getMinAmount()) < 0;
+    }
+
+    public String describe(Discount discount) {
+        if (discount.getDiscountPriceType() == DiscountPriceType.FIXED)
+            return "LKR %s off".formatted(discount.getFixed().stripTrailingZeros().toPlainString());
+        return "%s%% off".formatted(discount.getPercentage().stripTrailingZeros().toPlainString());
     }
 
     public BigDecimal applyDiscount(BigDecimal orgPrice, Discount discount) {

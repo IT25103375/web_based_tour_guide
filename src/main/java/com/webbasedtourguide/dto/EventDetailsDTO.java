@@ -3,18 +3,24 @@ package com.webbasedtourguide.dto;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 public class EventDetailsDTO extends BasicResponse {
 
     @NotNull
     private Integer eventId;
-    @NotNull
     private Integer pkgId;
-    @NotNull
     private String location;
     private Integer capacity;
     private String description;
     private double avgRating;
+
+    // Tourist registration: which of their bookings the event is attached to
+    private Integer bookingId;
+    private Instant startDate;
+    private Instant endDate;
+    // Null when the event has no capacity limit
+    private Integer availableSpots;
 
     // For display purposes
     private String displayName;
@@ -87,6 +93,38 @@ public class EventDetailsDTO extends BasicResponse {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Integer getBookingId() {
+        return bookingId;
+    }
+
+    public void setBookingId(Integer bookingId) {
+        this.bookingId = bookingId;
+    }
+
+    public Instant getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Instant startDate) {
+        this.startDate = startDate;
+    }
+
+    public Instant getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Instant endDate) {
+        this.endDate = endDate;
+    }
+
+    public Integer getAvailableSpots() {
+        return availableSpots;
+    }
+
+    public void setAvailableSpots(Integer availableSpots) {
+        this.availableSpots = availableSpots;
     }
 
     public double getAvgRating() {

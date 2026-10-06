@@ -17,6 +17,7 @@ type UserContextType = {
     logout: () => void;
     isLoggedIn: () => boolean;
     isAdmin: () => boolean;
+    isTourist: () => boolean;
 }
 
 type Props = { children: React.ReactNode };
@@ -154,8 +155,12 @@ export const UserProvider = ({children} : Props) => {
         return (user?.role == "AGENCYSTAFF") || (user?.role == "TOURMANAGER");
     }
 
+    const isTourist = () => {
+        return user?.role == "TOURIST";
+    }
+
     return (
-        <UserContext.Provider value={{loginUser, user, token, logout, isLoggedIn, isAdmin, registerUser}}>
+        <UserContext.Provider value={{loginUser, user, token, logout, isLoggedIn, isAdmin, isTourist, registerUser}}>
             {isReady ? children : null}
         </UserContext.Provider>
     )

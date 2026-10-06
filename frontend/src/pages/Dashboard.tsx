@@ -4,13 +4,6 @@ import {
   CardContent,
   Typography,
   Grid,
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Button,
   Avatar,
 } from "@mui/material";
@@ -19,32 +12,119 @@ import {
   Event,
   People,
   AttachMoney,
-  TrendingUp,
   ArrowForward,
+  Explore,
+  ConfirmationNumber,
+  Star,
+  CalendarMonth,
+  Translate,
+  CheckCircle,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import {useAuth} from "@/context/useAuth.tsx";
-import {useEffect, useState} from "react";
+import {useEffect, useState, type ReactNode} from "react";
 import {tourPackageAPI} from "@/services/TourPackageService.tsx";
 import {TourPackage} from "@/models/TourPackage.ts";
 import {Package} from "@/pages/Booking.tsx";
 import AssignedGuides from "@/components/AssignedGuides.tsx";
+import {userAdminAPI} from "@/services/UserAdminService.tsx";
+import {eventAPI} from "@/services/EventService.tsx";
+import {supportAPI} from "@/services/SupportService.tsx";
+import {guideAPI} from "@/services/GuideService.tsx";
+import {bookingAPI} from "@/services/BookingService.tsx";
+import type {Ticket} from "@/models/Ticket.ts";
+import type {Booking} from "@/models/Booking.ts";
 
-const statusColor = (s: string) =>
-    s === "Confirmed" ? "success" : s === "Pending" ? "warning" : "error";
+interface StatCard {
+  label: string;
+  value: string;
+  icon: ReactNode;
+  color: string;
+}
 
-const statCards = [
-  { label: "Total Bookings", value: "48", icon: <BookOnline />, delta: "+12 this month", color: "#1B4332" },
-  { label: "Upcoming Events", value: "7", icon: <Event />, delta: "Next: Oct 5", color: "#D4A017" },
-  { label: "Registered Users", value: "124", icon: <People />, delta: "+8 this week", color: "#2D6A4F" },
-  { label: "Revenue (LKR)", value: "218,400", icon: <AttachMoney />, delta: "+18% vs last month", color: "#A67C00" },
-];
+// Safely unwraps an axios response (undefined when the request failed) into a list
+const listOf = <T,>(res?: { data?: unknown }): T[] => {
+  const data = res?.data;
+  return Array.isArray(data) ? (data as T[]) : [];
+};
 
 export default function Dashboard() {
   const [tourPackages, setTourPackages] = useState<Package[]>([]);
   const navigate = useNavigate();
-  const {user} = useAuth();
+  const {user, isAdmin, isTourist} = useAuth();
+  const tourist = isTourist();
+  const admin = isAdmin();
+  const [liveStats, setLiveStats] = useState<StatCard[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [bookingsLoading, setBookingsLoading] = useState(tourist);
+  const [bookingsError, setBookingsError] = useState("");
+
+  // Tourist figures come from their own bookings and tickets
+  const loadTouristData = () => {
+    setBookingsLoading(true);
+    return Promise.all([bookingAPI.getMyBookings(), supportAPI.getTickets()])
+      .then(([bookingsRes, ticketsRes]) => {
+        const list = listOf<Booking>(bookingsRes);
+        setBookings(list);
+        setBookingsError(bookingsRes ? "" : "Could not load your bookings.");
+
+        const now = Date.now();
+        const active = list.filter((b) => b.status === "BOOKED");
+        const next = active
+            .filter((b) => new Date(b.bookedDate).getTime() > now)
+            .sort((a, b) => new Date(a.bookedDate).getTime() - new Date(b.bookedDate).getTime())[0];
+        const spent = list
+            .filter((b) => b.status === "BOOKED" || b.status === "FINISHED")
+            .reduce((sum, b) => sum + (b.finalPrice ?? 0), 0);
+        const openTickets = listOf<Ticket>(ticketsRes).filter((t) => t.status !== "SOLVED").length;
+
+        setLiveStats([
+          { label: "Active Bookings", value: String(active.length), icon: <BookOnline />, color: "#1B4332" },
+          { label: "Next Tour", value: next ? new Date(next.bookedDate).toLocaleDateString() : "None booked", icon: <Event />, color: "#D4A017" },
+          { label: "Total Spent (LKR)", value: spent.toLocaleString(), icon: <AttachMoney />, color: "#A67C00" },
+          { label: "Open Tickets", value: String(openTickets), icon: <ConfirmationNumber />, color: "#2D6A4F" },
+        ]);
+      })
+      .finally(() => setBookingsLoading(false));
+  };
+
+  // Everyone gets real figures: tourists their own, admins system-wide, guides their profile
+  useEffect(() => {
+    if (tourist) {
+      void loadTouristData();
+      return;
+    }
+    if (admin) {
+      Promise.all([
+        userAdminAPI.getUsers(),
+        eventAPI.getAllEventsAdmin(),
+        supportAPI.getAllTickets(),
+        tourPackageAPI.getPackages(),
+      ]).then(([users, events, tickets, pkgs]) => {
+        const open = listOf<Ticket>(tickets).filter((t) => t.status !== "SOLVED").length;
+        setLiveStats([
+          { label: "Tour Packages", value: String(listOf(pkgs).length), icon: <Explore />, color: "#1B4332" },
+          { label: "Events", value: String(listOf(events).length), icon: <Event />, color: "#D4A017" },
+          { label: "Registered Users", value: String(listOf(users).length), icon: <People />, color: "#2D6A4F" },
+          { label: "Open Tickets", value: String(open), icon: <ConfirmationNumber />, color: "#A67C00" },
+        ]);
+      });
+    } else if (user?.guideId != null) {
+      guideAPI.getGuide(user.guideId).then((res) => {
+        const g = res?.data;
+        if (!g) return;
+        const status = g.status.charAt(0) + g.status.slice(1).toLowerCase();
+        setLiveStats([
+          { label: "Status", value: status, icon: <CheckCircle />, color: "#1B4332" },
+          { label: "Average Rating", value: (g.avgRating ?? 0).toFixed(1), icon: <Star />, color: "#D4A017" },
+          { label: "Working Days", value: String(g.activeDays?.length ?? 0), icon: <CalendarMonth />, color: "#2D6A4F" },
+          { label: "Languages", value: g.languages?.length ? g.languages.join(", ") : "None set", icon: <Translate />, color: "#A67C00" },
+        ]);
+      });
+    }
+  }, [tourist, admin, user?.guideId]);
+
 
   useEffect(() => {
     tourPackageAPI.getPackages().then((res) => {
@@ -75,13 +155,17 @@ export default function Dashboard() {
               Welcome back, {user?.username}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Here's what's happening with your tours today.
+              {tourist
+                  ? "Here's what's happening with your tours today."
+                  : admin
+                      ? "Here's an overview of the system."
+                      : "Here's an overview of your guide profile."}
             </Typography>
           </Box>
 
           {/* Stat cards */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            {statCards.map((s) => (
+            {liveStats.map((s) => (
                 <Grid size={{ xs: 12, sm: 6, md: 3 }} key={s.label}>
                   <Card elevation={0} sx={{ border: "1px solid #E8E0D5" }}>
                     <CardContent sx={{ display: "flex", alignItems: "flex-start", gap: 2, p: 2.5, "&:last-child": { pb: 2.5 } }}>
@@ -89,10 +173,7 @@ export default function Dashboard() {
                       <Box>
                         <Typography variant="h5" sx={{ fontWeight: 700, lineHeight: 1.1 }}>{s.value}</Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 0.25 }}>{s.label}</Typography>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                          <TrendingUp sx={{ fontSize: 13, color: "success.main" }} />
-                          <Typography variant="caption" color="success.main">{s.delta}</Typography>
-                        </Box>
+
                       </Box>
                     </CardContent>
                   </Card>
@@ -101,49 +182,30 @@ export default function Dashboard() {
           </Grid>
 
           <Grid container spacing={2}>
-            {/* Recent Bookings */}
+            {/* Recent Bookings (tourists only; the bookings API is tourist-only) */}
+            {tourist && (
             <Grid size={{ xs: 12, lg: 8 }}>
               <Card elevation={0} sx={{ border: "1px solid #E8E0D5" }}>
                 <CardContent sx={{ p: 2.5, "&:last-child": { pb: 2.5 } }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                    <Typography variant="h6">Recent Bookings</Typography>
+                    <Typography variant="h6">My Bookings</Typography>
                     <Button size="small" endIcon={<ArrowForward />} onClick={() => navigate("/booking")}>
                       Book new
                     </Button>
                   </Box>
-                  <TableContainer>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell sx={{ fontWeight: 600, color: "text.secondary", borderBottom: "2px solid #E8E0D5" }}>Guest</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: "text.secondary", borderBottom: "2px solid #E8E0D5" }}>Package</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: "text.secondary", borderBottom: "2px solid #E8E0D5" }}>Date</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: "text.secondary", borderBottom: "2px solid #E8E0D5" }} align="right">Amount</TableCell>
-                          <TableCell sx={{ fontWeight: 600, color: "text.secondary", borderBottom: "2px solid #E8E0D5" }}>Status</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {/*{recentBookings.map((b) => (*/}
-                        {/*  <TableRow key={b.id} sx={{ "&:hover": { bgcolor: "#FAFAF8" } }}>*/}
-                        {/*    <TableCell>{b.user}</TableCell>*/}
-                        {/*    <TableCell sx={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{b.package}</TableCell>*/}
-                        {/*    <TableCell>{b.date}</TableCell>*/}
-                        {/*    <TableCell align="right">LKR {b.amount.toLocaleString()}</TableCell>*/}
-                        {/*    <TableCell>*/}
-                        {/*      <Chip label={b.status} color={statusColor(b.status)} size="small" />*/}
-                        {/*    </TableCell>*/}
-                        {/*  </TableRow>*/}
-                        {/*))}*/}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                  <AssignedGuides />
+                  <AssignedGuides
+                    bookings={bookings}
+                    loading={bookingsLoading}
+                    error={bookingsError}
+                    onCancelled={loadTouristData}
+                  />
                 </CardContent>
               </Card>
             </Grid>
+            )}
 
             {/* Popular Packages */}
-            <Grid size={{ xs: 12, lg: 4 }}>
+            <Grid size={{ xs: 12, lg: tourist ? 4 : 12 }}>
               <Card elevation={0} sx={{ border: "1px solid #E8E0D5", height: "100%" }}>
                 <CardContent sx={{ p: 2.5, "&:last-child": { pb: 2.5 } }}>
                   <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -153,7 +215,7 @@ export default function Dashboard() {
                     </Button>
                   </Box>
                   <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                    {tourPackages.slice(0, 4).map((pkg) => (
+                    {tourPackages.slice(0, tourist ? 4 : 6).map((pkg) => (
                         <Box
                             key={pkg.id}
                             sx={{
@@ -168,12 +230,14 @@ export default function Dashboard() {
                             }}
                             onClick={() => navigate("/booking")}
                         >
-                          <Box
-                              component="img"
-                              src={pkg.image}
-                              alt={pkg.name}
-                              sx={{ width: 48, height: 48, borderRadius: 1.5, objectFit: "cover", flexShrink: 0 }}
-                          />
+                          {pkg.image && (
+                            <Box
+                                component="img"
+                                src={pkg.image}
+                                alt={pkg.name}
+                                sx={{ width: 48, height: 48, borderRadius: 1.5, objectFit: "cover", flexShrink: 0 }}
+                            />
+                          )}
                           <Box sx={{ flex: 1, minWidth: 0 }}>
                             <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.3 }} noWrap>{pkg.name}</Typography>
                             <Typography variant="caption" color="text.secondary">{pkg.duration}</Typography>

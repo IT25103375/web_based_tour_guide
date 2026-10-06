@@ -5,6 +5,8 @@ import com.webbasedtourguide.entities.Rating;
 import com.webbasedtourguide.entities.TourGuide;
 import com.webbasedtourguide.enums.GuideStatus;
 import com.webbasedtourguide.exceptions.GuideException;
+import com.webbasedtourguide.enums.BookingStatus;
+import com.webbasedtourguide.repositories.BookingRepository;
 import com.webbasedtourguide.repositories.TourGuideRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -20,9 +22,11 @@ import java.util.stream.Collectors;
 public class TourGuideService {
 
     private final TourGuideRepository guideRepository;
+    private final BookingRepository bookingRepository;
 
-    TourGuideService(TourGuideRepository guideRepository) {
+    TourGuideService(TourGuideRepository guideRepository, BookingRepository bookingRepository) {
         this.guideRepository = guideRepository;
+        this.bookingRepository = bookingRepository;
     }
 
     public TourGuide getGuide(Integer id) {
@@ -34,7 +38,11 @@ public class TourGuideService {
         DayOfWeek tourDay = bookedDate.atZone(ZoneId.systemDefault()).getDayOfWeek();
         int bitmask = 1 << tourDay.ordinal();
 
-        List<TourGuide> guides = guideRepository.findAvailableGuides(bitmask);
+        // A guide being booked on one date does not make them unavailable on other dates
+        List<Integer> busy = bookingRepository.getGuideIdsBookedOn(bookedDate, BookingStatus.BOOKED);
+        List<TourGuide> guides = guideRepository.findAvailableGuides(bitmask).stream()
+                .filter(g -> !busy.contains(g.getId()))
+                .collect(Collectors.toList());
         if (!guides.isEmpty()) return guides.getFirst();
         else throw new GuideException("No guides available!");
     }

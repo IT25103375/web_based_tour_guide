@@ -13,6 +13,13 @@ import {UserProvider} from "@/context/useAuth.tsx";
 import Tickets from "@/pages/Tickets.tsx";
 import {ToastContainer} from "react-toastify";
 
+// Guards a group of routes by role; anyone else is sent back to the dashboard
+function RoleRoute({ allow }: { allow: "tourist" | "admin" }) {
+    const { isAdmin, isTourist } = useAuth();
+    const permitted = allow === "admin" ? isAdmin() : isTourist();
+    return permitted ? <Outlet /> : <Navigate to="/dashboard" replace />;
+}
+
 export default function App() {
 
     function ProtectedRoute() {
@@ -37,9 +44,13 @@ export default function App() {
                         <Route element={<ProtectedRoute />}>
                             <Route path="/dashboard" element={<Dashboard />} />
                             <Route path="/booking" element={<Booking />} />
-                            <Route path="/events" element={<EventBooking />} />
+                            <Route element={<RoleRoute allow="tourist" />}>
+                                <Route path="/events" element={<EventBooking />} />
+                            </Route>
                             <Route path="/destinations" element={<DestinationSearch />} />
-                            <Route path="/admin" element={<AdminPanel />} />
+                            <Route element={<RoleRoute allow="admin" />}>
+                                <Route path="/admin" element={<AdminPanel />} />
+                            </Route>
                             <Route path="/tickets" element={<Tickets />} />
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Route>

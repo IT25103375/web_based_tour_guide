@@ -5,6 +5,7 @@ import com.webbasedtourguide.entities.TimedDiscount;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,10 +20,10 @@ public interface DiscountRepository extends CrudRepository<Discount, Integer> {
     boolean couponCodeExists(String code, Integer excludeId);
 
     @Query("SELECT d FROM Discount d JOIN d.applicablePackages p " +
-            "WHERE p.id = :pkgId AND TYPE(d) = CouponCode AND d.couponCode = :code")
+            "WHERE p.id = :pkgId AND TYPE(d) = CouponCode AND UPPER(d.couponCode) = UPPER(:code)")
     Optional<Discount> getCouponCodeForPackage(String code, Integer pkgId);
 
     @Query("SELECT d FROM Discount d JOIN d.applicablePackages p " +
-            "WHERE p.id = :pkgId AND TYPE(d) = TimedDiscount")
-    List<TimedDiscount> getAvailableTimedDiscounts(Integer pkgId);
+            "WHERE p.id = :pkgId AND TYPE(d) = TimedDiscount AND d.startDate <= :now AND d.endDate >= :now")
+    List<TimedDiscount> getAvailableTimedDiscounts(Integer pkgId, Instant now);
 }

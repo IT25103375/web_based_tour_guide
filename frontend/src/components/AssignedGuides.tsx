@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Alert, Box, Button, Chip, CircularProgress, Dialog, DialogContent, DialogTitle, Divider, Stack, Typography } from "@mui/material";
+import { useState } from "react";
+import { Alert, Box, Button, Chip, CircularProgress, Dialog, DialogContent, DialogTitle, Stack, Typography } from "@mui/material";
 import { People } from "@mui/icons-material";
 import { bookingAPI } from "../services/BookingService";
 import { guideAPI } from "../services/GuideService";
@@ -7,27 +7,32 @@ import type { Booking } from "../models/Booking";
 import type { Guide } from "../models/User";
 import RatingSection from "./RatingSection";
 
-export default function AssignedGuides() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+interface Props {
+  bookings: Booking[];
+  loading: boolean;
+  error: string;
+  // Called after a booking was cancelled so the parent can reload its data
+  onCancelled: () => void;
+}
+
+export default function AssignedGuides({ bookings, loading, error, onCancelled }: Props) {
   const [guide, setGuide] = useState<Guide | null>(null);
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
-  const [error, setError] = useState("");
   const [profileError, setProfileError] = useState("");
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
 
-  useEffect(() => {
-    let active = true;
-    bookingAPI.getMyBookings()
-      .then((res) => {
-        if (!active) return;
-        if (res) setBookings(res.data ?? []);
-        else setError("Could not load your bookings and assigned guides.");
-      })
-      .catch(() => { if (active) setError("Could not load your bookings and assigned guides."); })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, []);
+  const canCancel = (booking: Booking) =>
+    booking.status === "BOOKED" && new Date(booking.bookedDate).getTime() > Date.now();
+
+  async function cancel(booking: Booking) {
+    if (!window.confirm(`Cancel your booking for ${booking.packageName}?`)) return;
+    setCancellingId(booking.bookingId);
+    // handleError already toasts failures and returns undefined
+    const res = await bookingAPI.cancelTour(booking.bookingId);
+    setCancellingId(null);
+    if (res) onCancelled();
+  }
 
   async function showGuide(id: number) {
     setGuide(null);
@@ -46,9 +51,7 @@ export default function AssignedGuides() {
   }
 
   return (
-    <Box sx={{ mt: 3 }}>
-      <Divider sx={{ mb: 2 }} />
-      <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>My bookings & assigned guides</Typography>
+    <Box>
       {loading && <CircularProgress size={24} aria-label="Loading bookings" />}
       {error && <Alert severity="error">{error}</Alert>}
       {!loading && !error && (bookings.length ? (
@@ -57,13 +60,28 @@ export default function AssignedGuides() {
             <Box key={booking.bookingId} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 1, p: 1.5, bgcolor: "background.default", borderRadius: 2 }}>
               <Box>
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>{booking.packageName}</Typography>
-                <Typography variant="caption" color="text.secondary">{new Date(booking.bookedDate).toLocaleDateString()} · {booking.status}</Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {new Date(booking.bookedDate).toLocaleDateString()} · LKR {booking.finalPrice?.toLocaleString()}
+                </Typography>
               </Box>
-              {booking.guideId != null ? (
-                <Button size="small" startIcon={<People />} onClick={() => showGuide(booking.guideId!)}>
-                  {booking.guideName || "View guide"}
-                </Button>
-              ) : <Typography variant="caption" color="text.secondary">Guide not assigned yet</Typography>}
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center", flexWrap: "wrap" }}>
+                <Chip
+                  size="small"
+                  variant="outlined"
+                  label={booking.status.charAt(0) + booking.status.slice(1).toLowerCase()}
+                  color={booking.status === "BOOKED" ? "success" : booking.status === "CANCELLED" ? "error" : "default"}
+                />
+                {booking.guideId != null ? (
+                  <Button size="small" startIcon={<People />} onClick={() => showGuide(booking.guideId!)}>
+                    {booking.guideName || "View guide"}
+                  </Button>
+                ) : <Typography variant="caption" color="text.secondary">Guide not assigned yet</Typography>}
+                {canCancel(booking) && (
+                  <Button size="small" color="error" onClick={() => cancel(booking)} disabled={cancellingId === booking.bookingId}>
+                    Cancel
+                  </Button>
+                )}
+              </Stack>
             </Box>
           ))}
         </Stack>

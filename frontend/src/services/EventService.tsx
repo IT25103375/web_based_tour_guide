@@ -1,6 +1,7 @@
 import axios from "axios";
 import { handleError } from "../helpers/ErrorHandler";
 import {EventEntity, EventList} from "../models/EventEntity.ts";
+import type {EventDetails} from "../models/EventDetails.ts";
 
 const api = "http://localhost:8090/";
 
@@ -40,19 +41,21 @@ export const eventAPI = {
 
     getEventsByPackage: async (pkgId: number) => {
         try {
-            return await axios.get<EventList>(api + "api/event", {
-                data: pkgId,
+            // Query param, not a body: browsers drop the body of a GET request
+            return await axios.get<EventDetails[]>(api + "api/event", {
+                params: { pkgId },
             });
         } catch (error) {
             handleError(error);
         }
     },
 
-    registerEvent: async (eventId: number | undefined, pkgId: number) => {
+    // The event is attached to one of the tourist's own bookings
+    registerEvent: async (eventId: number, bookingId: number) => {
         try {
             const form = new URLSearchParams();
             form.append("eventId", String(eventId));
-            form.append("pkgId", String(pkgId));
+            form.append("bookingId", String(bookingId));
             return await axios.post<string>(api + "api/event/book", form, {
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
             });

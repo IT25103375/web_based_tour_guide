@@ -157,11 +157,17 @@ export default function UserProfilePopover() {
         disableRestoreFocus
         anchorOrigin={{ vertical: "top", horizontal: "right" }}
         transformOrigin={{ vertical: "bottom", horizontal: "left" }}
+        sx={{ pointerEvents: "none" }}
         slotProps={{
           paper: {
             onMouseEnter: cancelClose,
             onMouseLeave: scheduleClose,
-            sx: { width: { xs: "90vw", sm: 390 }, ml: 1, overflow: "visible" },
+            sx: {
+              pointerEvents: "auto",
+              width: { xs: "90vw", sm: 390 },
+              ml: 1,
+              overflow: "visible",
+            },
           },
         }}
       >
