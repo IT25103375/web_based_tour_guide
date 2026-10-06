@@ -1,0 +1,10 @@
+{
+  "description": "Simplifies tour planning with easy booking of tour packages and events, destination search, and admin management for seamless user experience.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
