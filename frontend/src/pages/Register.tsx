@@ -50,7 +50,7 @@ export default function Register() {
         display: "flex",
         bgcolor: "#F7F4EF",
         backgroundImage: `linear-gradient(rgba(27,67,50,0.72), rgba(27,67,50,0.72)),
-          url('https://images.unsplash.com/photo-1588416936097-41850ab3d86d?w=1600&h=900&fit=crop&auto=format')`,
+          url('../../public/backdrop.jpg')`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}

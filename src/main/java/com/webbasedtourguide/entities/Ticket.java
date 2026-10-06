@@ -65,18 +65,20 @@ public class Ticket {
         messages.add(userMessage);
         addObserver(userMessage.getSender());
 
-        // Notify subscribed people
-        String notifTitle = "Reply to ticket T%s".formatted(id);
-        String notifMessage = userMessage.getContent().substring(0,
-                Math.min(userMessage.getContent().length(), Notification.MSG_LENGTH));
-        for (AuthEntity authEntity : authEntities) {
-            if (authEntity.getUserType() == UserType.AGENCYSTAFF || authEntity.getUserType() == UserType.TOURMANAGER)
-                continue;
-            authEntity.getDependent().addNotification(new Notification(notifTitle, notifMessage));
-        }
-
         if (status == TicketStatus.AWAITINGRESPONSE && messages.size() > 1)
             status = TicketStatus.ONGOING;
+        else {
+            // Notify subscribed people if ticket is not new
+            String notifTitle = "Reply to ticket T%s".formatted(id);
+            String notifMessage = userMessage.getContent().substring(0,
+                    Math.min(userMessage.getContent().length(), Notification.MSG_LENGTH));
+            for (AuthEntity authEntity : authEntities) {
+                if (authEntity.getUserType() == UserType.AGENCYSTAFF || authEntity.getUserType() == UserType.TOURMANAGER
+                ||  authEntity.getId() == (long) userMessage.getSender().getId())
+                    continue;
+                authEntity.getDependent().addNotification(new Notification(notifTitle, notifMessage));
+            }
+        }
     }
 
     public UserMessage getFirstMessage() {
